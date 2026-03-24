@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Life Management</title>
+<style>
+/* --- UNIFIED CSS --- */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 13px; background: #F8F9FA; color: #333; }
+
+:root {
+  --color-background-primary: #FFFFFF;
+  --color-background-secondary: #F1F3F5;
+  --color-text-primary: #212529;
+  --color-text-secondary: #495057;
+  --color-text-tertiary: #868E96;
+  --color-border-secondary: #CED4DA;
+  --color-border-tertiary: #E9ECEF;
+  --border-radius-md: 6px;
+  --border-radius-lg: 10px;
+  
+  --imp-bg:#3C3489; --imp-border:#7F77DD; --imp-text:#EEEDFE; --imp-sub:#AFA9EC;
+}
+
+/* App Layout & Nav */
+#app { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.top-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid var(--color-border-tertiary); }
+.nav-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+.nav-tab { padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 500; cursor: pointer; color: var(--color-text-secondary); background: transparent; transition: all 0.2s; }
+.nav-tab:hover { background: var(--color-background-secondary); }
+.nav-tab.active { background: #212529; color: #fff; }
+.sync-status { font-size: 12px; color: var(--color-text-tertiary); display: flex; align-items: center; gap: 8px; }
+.sync-btn { padding: 6px 12px; border: 1px solid var(--color-border-secondary); border-radius: var(--border-radius-md); background: #fff; cursor: pointer; font-size: 12px; display: flex; align-items: center; gap: 4px; }
+.sync-btn:hover { background: var(--color-background-secondary); }
+.syncing .sync-icon { animation: spin 1s linear infinite; }
+@keyframes spin { 100% { transform: rotate(360deg); } }
+
+/* View Management */
+.app-view { display: none; }
+.app-view.active { display: block; }
+
+/* Kanban Styles */
+.board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; align-items: start; }
+.col { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 12px; min-height: 400px; }
+.col-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-weight: 600; font-size: 13px; }
+.col-count { background: var(--color-background-primary); padding: 2px 8px; border-radius: 12px; font-size: 11px; color: var(--color-text-tertiary); }
+.card { background: var(--color-background-primary); border-radius: var(--border-radius-md); padding: 12px; margin-bottom: 10px; cursor: grab; border: 1px solid var(--color-border-tertiary); box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+.card.important { background: var(--imp-bg); border-left: 3px solid var(--imp-border); color: var(--imp-text); }
+.card.important .card-title { color: var(--imp-text); }
+.card.important .due, .card.important .cat-pill { color: var(--imp-sub); opacity: 0.9; }
+.card-title { font-size: 14px; font-weight: 500; margin-bottom: 8px; }
+.card-meta { display: flex; gap: 8px; font-size: 11px; color: var(--color-text-tertiary); align-items: center; flex-wrap: wrap; }
+.cat-pill { padding: 2px 8px; border-radius: 12px; background: var(--color-background-secondary); }
+.due.overdue { color: #d93025; font-weight: bold; }
+.drag-over-col { outline: 2px dashed #adb5bd; outline-offset: -4px; }
+.col-drop-zone { min-height: 50px; }
+
+/* Buttons & Inputs */
+.btn-primary { background: #212529; color: #fff; border: none; padding: 8px 16px; border-radius: var(--border-radius-md); cursor: pointer; font-size: 13px; }
+.btn-primary:hover { background: #343a40; }
+.input-base { width: 100%; padding: 8px 12px; border: 1px solid var(--color-border-secondary); border-radius: var(--border-radius-md); font-size: 13px; margin-bottom: 12px; }
+
+/* Modals */
+.overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; }
+.overlay.active { display: flex; }
+.modal { background: #fff; padding: 24px; border-radius: var(--border-radius-lg); width: 100%; max-width: 400px; }
+.modal h3 { margin-bottom: 16px; font-size: 16px; }
+.form-group { margin-bottom: 15px; }
+.form-group label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 500; color: var(--color-text-secondary); }
+.modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+.btn-cancel { background: transparent; border: 1px solid var(--color-border-secondary); padding: 8px 16px; border-radius: var(--border-radius-md); cursor: pointer; }
+
+/* Daily Focus & Habits */
+.focus-task { display: flex; align-items: center; gap: 12px; padding: 12px; background: #fff; border: 1px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); margin-bottom: 8px; }
+.f-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--color-border-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; }
+.f-check.done { background: #1D9E75; border-color: #1D9E75; color: #fff; }
+.focus-task.done .focus-title { text-decoration: line-through; color: var(--color-text-tertiary); }
+.brain-dump { margin-top: 24px; background: var(--color-background-secondary); padding: 16px; border-radius: var(--border-radius-lg); }
+.brain-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--color-border-tertiary); font-size: 13px; }
+
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+.stat-card{background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:12px;text-align:center}
+.stat-num{font-size:22px;font-weight:500;color:var(--color-text-primary)}
+.stat-label{font-size:11px;color:var(--color-text-secondary);margin-top:2px}
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="top-nav">
+    <div class="nav-tabs">
+      <div class="nav-tab active" onclick="switchView('kanban')">Kanban</div>
+      <div class="nav-tab" onclick="switchView('focus')">Daily Focus</div>
+      <div class="nav-tab" onclick="switchView('habits')">Habits</div>
+      <div class="nav-tab" onclick="switchView('goals')">Goals</div>
+    </div>
+    <div class="sync-status">
+      <span id="lastSyncTime">Not synced</span>
+      <button class="sync-btn" id="syncBtn" onclick="forceSync()">
+        <span class="sync-icon">🔄</span> Sync
+      </button>
+      <button class="sync-btn" onclick="openSettingsModal()">⚙️ Settings</button>
+    </div>
+  </div>
+
+  <div id="view-kanban" class="app-view active">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+      <h2>Task Board</h2>
+      <button class="btn-primary" onclick="openAddTaskModal()">+ New Task</button>
+    </div>
+    <div class="board">
+      <div class="col" ondragover="onDragOver(event)" ondrop="onDrop(event, 'topick')">
+        <div class="col-head">To Pick <span class="col-count" id="count-topick">0</span></div>
+        <div class="col-drop-zone" id="col-topick"></div>
+      </div>
+      <div class="col" ondragover="onDragOver(event)" ondrop="onDrop(event, 'todo')">
+        <div class="col-head">To Do <span class="col-count" id="count-todo">0</span></div>
+        <div class="col-drop-zone" id="col-todo"></div>
+      </div>
+      <div class="col" ondragover="onDragOver(event)" ondrop="onDrop(event, 'inprogress')">
+        <div class="col-head">In Progress <span class="col-count" id="count-inprogress">0</span></div>
+        <div class="col-drop-zone" id="col-inprogress"></div>
+      </div>
+      <div class="col" ondragover="onDragOver(event)" ondrop="onDrop(event, 'done')">
+        <div class="col-head">Done <span class="col-count" id="count-done">0</span></div>
+        <div class="col-drop-zone" id="col-done"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-focus" class="app-view">
+    <h2>Today's Focus</h2>
+    <p style="color: var(--color-text-tertiary); margin-bottom: 20px;">Important tasks due today & tasks in progress.</p>
+    <div id="focus-task-list"></div>
+    <div class="brain-dump">
+      <h3 style="font-size: 14px; margin-bottom: 10px;">Brain Dump (Local Inbox)</h3>
+      <input type="text" id="brainInput" class="input-base" placeholder="Type a thought and press Enter..." onkeypress="handleBrainDumpAdd(event)">
+      <div id="brain-list"></div>
+    </div>
+  </div>
+
+  <div id="view-habits" class="app-view">
+    <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
+      <h2>Habits Tracker</h2>
+    </div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num" id="stat-active">0</div><div class="stat-label">Active Habits</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#1D9E75" id="stat-today">0/0</div><div class="stat-label">Done Today</div></div>
+      <div class="stat-card"><div class="stat-num" style="color:#BA7517" id="stat-tracked">0</div><div class="stat-label">Total Logs</div></div>
+    </div>
+    <div id="habits-list"></div>
+  </div>
+
+  <div id="view-goals" class="app-view">
+    <h2>Goals Overview</h2>
+    <p style="color: var(--color-text-tertiary); margin-bottom: 20px;">(Data fetched from Goals sheet. Visualization coming soon.)</p>
+    <div id="goals-list"></div>
+  </div>
+
+</div>
+
+<div class="overlay" id="modal-add-task">
+  <div class="modal">
+    <h3>Add New Task</h3>
+    <div class="form-group">
+      <label>Title</label>
+      <input type="text" id="taskTitle" class="input-base" placeholder="What needs to be done?">
+    </div>
+    <div class="form-group">
+      <label>Category</label>
+      <select id="taskCategory" class="input-base"></select>
+    </div>
+    <div class="form-group">
+      <label>Due Date</label>
+      <input type="date" id="taskDue" class="input-base">
+    </div>
+    <div class="form-group" style="display: flex; align-items: center; gap: 8px;">
+      <input type="checkbox" id="taskImportant">
+      <label style="margin: 0;">Mark as Important</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancel</button>
+      <button class="btn-primary" onclick="submitNewTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="modal-settings">
+  <div class="modal">
+    <h3>App Settings</h3>
+    <p style="font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 15px;">
+      Connect your Google Sheet database by pasting the Apps Script Web App URL below.
+    </p>
+    <div class="form-group">
+      <label>Google Apps Script URL</label>
+      <input type="url" id="scriptUrlInput" class="input-base" placeholder="https://script.google.com/macros/s/.../exec">
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModals()">Cancel</button>
+      <button class="btn-primary" onclick="saveSettings()">Save & Connect</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// STATE MANAGEMENT & CONFIGURATION
+// ==========================================
+let scriptUrl = localStorage.getItem('life_script_url') || "";
+
+let appData = {
+  tasks: [],
+  habitsLog: [],
+  habitsMaster: [],
+  goals: [],
+  categories: []
+};
+
+let brainDump = JSON.parse(localStorage.getItem('life_brain_dump')) || [];
+let dragId = null;
+
+// ==========================================
+// INITIALIZATION & SETTINGS
+// ==========================================
+window.onload = async () => {
+  renderBrainDump();
+  
+  if (!scriptUrl) {
+    // Force user to open settings if no URL is saved
+    openSettingsModal();
+  } else {
+    loadLocalStaticData();
+    await fetchDynamicData(); 
+  }
+};
+
+function openSettingsModal() {
+  document.getElementById('scriptUrlInput').value = scriptUrl;
+  document.getElementById('modal-settings').classList.add('active');
+}
+
+function saveSettings() {
+  const url = document.getElementById('scriptUrlInput').value.trim();
+  if (!url.startsWith("https://script.google.com/")) {
+    alert("Please enter a valid Google Apps Script Web App URL.");
+    return;
+  }
+  
+  scriptUrl = url;
+  localStorage.setItem('life_script_url', scriptUrl);
+  closeModals();
+  
+  // Trigger an initial sync if we just connected
+  if (appData.categories.length === 0) {
+    forceSync();
+  } else {
+    fetchDynamicData();
+  }
+}
+
+// ==========================================
+// API CALLS
+// ==========================================
+async function apiCall(action, data = null) {
+  if (!scriptUrl) {
+    alert("Database disconnected. Please configure your Apps Script URL in Settings.");
+    openSettingsModal();
+    return { error: "No URL configured" };
+  }
+
+  try {
+    const isPost = data !== null;
+    const url = isPost ? scriptUrl : `${scriptUrl}?action=${action}`;
+    const options = isPost ? {
+      method: 'POST',
+      body: JSON.stringify({ action, data }),
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+    } : {};
+
+    const response = await fetch(url, options);
+    return await response.json();
+  } catch (error) {
+    console.error("API Error:", error);
+    alert("Connection error. Check your URL and ensure it's deployed to 'Anyone'.");
+    return { error };
+  }
+}
+
+async function forceSync() {
+  if (!scriptUrl) return openSettingsModal();
+  
+  const btn = document.getElementById('syncBtn');
+  btn.classList.add('syncing');
+  
+  const staticData = await apiCall('syncStatic');
+  if (!staticData.error) {
+    appData.categories = staticData.categories || [];
+    appData.goals = staticData.goals || [];
+    appData.habitsMaster = staticData.habitsMaster || [];
+    localStorage.setItem('life_static_data', JSON.stringify({
+      categories: appData.categories,
+      goals: appData.goals,
+      habitsMaster: appData.habitsMaster
+    }));
+  }
+
+  await fetchDynamicData();
+  
+  btn.classList.remove('syncing');
+  document.getElementById('lastSyncTime').innerText = "Synced just now";
+}
+
+async function fetchDynamicData() {
+  if (!scriptUrl) return;
+  const data = await apiCall('getData');
+  if (!data.error) {
+    appData.tasks = data.tasks || [];
+    appData.habitsLog = data.habitsLog || [];
+    renderAll();
+  }
+}
+
+function loadLocalStaticData() {
+  const local = JSON.parse(localStorage.getItem('life_static_data'));
+  if (local) {
+    appData.categories = local.categories;
+    appData.goals = local.goals;
+    appData.habitsMaster = local.habitsMaster;
+  } else if (scriptUrl) {
+    forceSync();
+  }
+}
+
+// ==========================================
+// UI RENDERING
+// ==========================================
+function renderAll() {
+  renderKanban();
+  renderFocus();
+  renderHabits();
+  renderGoals();
+}
+
+function switchView(viewId) {
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active'));
+  
+  event.target.classList.add('active');
+  document.getElementById(`view-${viewId}`).classList.add('active');
+}
+
+// --- KANBAN ---
+function renderKanban() {
+  const cols = ['topick', 'todo', 'inprogress', 'done'];
+  cols.forEach(col => {
+    document.getElementById(`col-${col}`).innerHTML = '';
+    document.getElementById(`count-${col}`).innerText = '0';
+  });
+
+  const sortedTasks = [...appData.tasks].sort((a, b) => {
+    if (a.Important !== b.Important) return a.Important ? -1 : 1;
+    return new Date(a.DueDate || '2099-01-01') - new Date(b.DueDate || '2099-01-01');
+  });
+
+  sortedTasks.forEach(task => {
+    if (!task.Status || task.Status === 'discarded') return;
+    
+    const container = document.getElementById(`col-${task.Status}`);
+    if (container) {
+      const card = document.createElement('div');
+      card.className = `card ${task.Important ? 'important' : ''}`;
+      card.draggable = true;
+      card.dataset.id = task.TaskID;
+      
+      const dueText = task.DueDate ? new Date(task.DueDate).toLocaleDateString() : '';
+      
+      card.innerHTML = `
+        <div class="card-title">${task.Title}</div>
+        <div class="card-meta">
+          <span class="cat-pill">${task.Category || 'Uncategorized'}</span>
+          ${dueText ? `<span class="due">${dueText}</span>` : ''}
+        </div>
+      `;
+      
+      card.addEventListener('dragstart', (e) => {
+        dragId = task.TaskID;
+        setTimeout(() => card.style.opacity = '0.5', 0);
+      });
+      card.addEventListener('dragend', () => card.style.opacity = '1');
+      
+      container.appendChild(card);
+    }
+  });
+
+  cols.forEach(col => {
+    document.getElementById(`count-${col}`).innerText = document.getElementById(`col-${col}`).children.length;
+  });
+}
+
+function onDragOver(e) { e.preventDefault(); }
+function onDrop(e, newStatus) {
+  e.preventDefault();
+  if (!dragId) return;
+
+  const task = appData.tasks.find(t => t.TaskID == dragId);
+  if (task && task.Status !== newStatus) {
+    task.Status = newStatus;
+    renderAll();
+    apiCall('updateTaskStatus', { taskId: dragId, status: newStatus });
+  }
+  dragId = null;
+}
+
+// --- ADD TASK LOGIC ---
+function openAddTaskModal() {
+  const select = document.getElementById('taskCategory');
+  select.innerHTML = '<option value="">Select Category</option>';
+  appData.categories.forEach(c => {
+    select.innerHTML += `<option value="${c}">${c}</option>`;
+  });
+  
+  document.getElementById('taskTitle').value = '';
+  document.getElementById('taskDue').value = '';
+  document.getElementById('taskImportant').checked = false;
+  
+  document.getElementById('modal-add-task').classList.add('active');
+}
+
+function closeModals() {
+  document.querySelectorAll('.overlay').forEach(m => m.classList.remove('active'));
+}
+
+async function submitNewTask() {
+  const title = document.getElementById('taskTitle').value;
+  if (!title) return alert("Title required");
+
+  const newTaskData = {
+    title: title,
+    category: document.getElementById('taskCategory').value,
+    dueDate: document.getElementById('taskDue').value,
+    important: document.getElementById('taskImportant').checked,
+    status: 'todo'
+  };
+
+  closeModals();
+  
+  const tempTask = { ...newTaskData, TaskID: 'temp_' + Date.now(), Important: newTaskData.important };
+  appData.tasks.push(tempTask);
+  renderAll();
+
+  const response = await apiCall('addTask', newTaskData);
+  if (response.success) {
+    fetchDynamicData(); 
+  }
+}
+
+// --- DAILY FOCUS & BRAIN DUMP ---
+function renderFocus() {
+  const list = document.getElementById('focus-task-list');
+  list.innerHTML = '';
+  
+  const todayStr = new Date().toISOString().split('T')[0];
+  
+  const focusTasks = appData.tasks.filter(t => 
+    t.Status === 'inprogress' || 
+    (t.Status !== 'done' && t.Important && t.DueDate && t.DueDate.startsWith(todayStr))
+  );
+
+  if(focusTasks.length === 0) {
+    list.innerHTML = `<p style="font-size:12px; color:var(--color-text-tertiary)">Nothing pulling your focus right now.</p>`;
+  }
+
+  focusTasks.forEach(task => {
+    const div = document.createElement('div');
+    div.className = `focus-task`;
+    div.innerHTML = `
+      <div class="f-check" onclick="markFocusDone('${task.TaskID}')"></div>
+      <div class="focus-title">
+        <b>${task.Title}</b> <span style="font-size:11px; color:var(--color-text-tertiary)">(${task.Category})</span>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function markFocusDone(taskId) {
+  const task = appData.tasks.find(t => t.TaskID == taskId);
+  if (task) {
+    task.Status = 'done';
+    renderAll();
+    apiCall('updateTaskStatus', { taskId: taskId, status: 'done' });
+  }
+}
+
+function handleBrainDumpAdd(e) {
+  if (e.key === 'Enter' && e.target.value.trim() !== '') {
+    brainDump.push({ id: Date.now(), text: e.target.value.trim() });
+    localStorage.setItem('life_brain_dump', JSON.stringify(brainDump));
+    e.target.value = '';
+    renderBrainDump();
+  }
+}
+
+function renderBrainDump() {
+  const list = document.getElementById('brain-list');
+  list.innerHTML = '';
+  brainDump.forEach(item => {
+    const div = document.createElement('div');
+    div.className = 'brain-item';
+    div.innerHTML = `
+      <span>${item.text}</span>
+      <button onclick="removeBrainItem(${item.id})" style="background:none; border:none; color:red; cursor:pointer;">✕</button>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function removeBrainItem(id) {
+  brainDump = brainDump.filter(i => i.id !== id);
+  localStorage.setItem('life_brain_dump', JSON.stringify(brainDump));
+  renderBrainDump();
+}
+
+// --- HABITS ---
+function renderHabits() {
+  const list = document.getElementById('habits-list');
+  list.innerHTML = '';
+  
+  const activeHabits = appData.habitsMaster.filter(h => h.Active === true || h.Active === 'TRUE');
+  document.getElementById('stat-active').innerText = activeHabits.length;
+  document.getElementById('stat-tracked').innerText = appData.habitsLog.length;
+
+  const todayStr = new Date().toISOString().split('T')[0];
+  let doneToday = 0;
+
+  activeHabits.forEach(habit => {
+    const logEntry = appData.habitsLog.find(l => String(l.Date).startsWith(todayStr) && l.HabitID == habit.HabitID);
+    const isDoneToday = logEntry && (logEntry.Completed === true || logEntry.Completed === 'TRUE');
+    
+    if (isDoneToday) doneToday++;
+
+    const div = document.createElement('div');
+    div.className = 'focus-task'; 
+    div.innerHTML = `
+      <div class="f-check ${isDoneToday ? 'done' : ''}" onclick="toggleHabit('${habit.HabitID}', ${!isDoneToday})">
+        ${isDoneToday ? '✓' : ''}
+      </div>
+      <div class="focus-title" style="flex:1">
+        <b>${habit.Icon || ''} ${habit.Name}</b>
+        <div style="font-size:11px; color:var(--color-text-tertiary)">${habit.Frequency}</div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+
+  document.getElementById('stat-today').innerText = `${doneToday}/${activeHabits.length}`;
+}
+
+function toggleHabit(habitId, completed) {
+  const todayStr = new Date().toISOString().split('T')[0];
+  
+  let logEntry = appData.habitsLog.find(l => String(l.Date).startsWith(todayStr) && l.HabitID == habitId);
+  if (logEntry) {
+    logEntry.Completed = completed;
+  } else {
+    appData.habitsLog.push({ Date: todayStr, HabitID: habitId, Completed: completed });
+  }
+  renderHabits();
+
+  apiCall('logHabit', { date: todayStr, habitId: habitId, completed: completed });
+}
+
+// --- GOALS ---
+function renderGoals() {
+  const list = document.getElementById('goals-list');
+  list.innerHTML = '';
+  
+  appData.goals.forEach(goal => {
+    const div = document.createElement('div');
+    div.className = 'focus-task';
+    div.innerHTML = `
+      <div>
+        <b>${goal.Label}</b> <span class="cat-pill">${goal.Category}</span>
+        <div style="font-size:11px; color:var(--color-text-tertiary); margin-top:4px;">Status: ${goal.Status}</div>
+      </div>
+    `;
+    list.appendChild(div);
+  });
+}
+
+</script>
+</body>
+</html>
