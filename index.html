@@ -108,6 +108,9 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 .recur-item{background:var(--color-background-primary);padding:12px;border-radius:var(--border-radius-md);display:flex;justify-content:space-between;align-items:center;border:1px solid var(--color-border-tertiary);}
 .recur-icon{background:#E6F1FB;color:#042C53;padding:4px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
 
+.checkbox-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
+.checkbox-grid label { display: flex; align-items: center; gap: 4px; background: var(--color-background-primary); padding: 6px 10px; border-radius: var(--border-radius-md); border: 1px solid var(--color-border-tertiary); cursor: pointer; }
+
 /* Context Menu */
 .context-menu{position:fixed;background:var(--color-background-secondary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px;z-index:2000;min-width:180px;display:none;box-shadow:0 10px 20px rgba(0,0,0,0.5);}
 .ctx-item{padding:10px 12px;font-size:13px;color:var(--color-text-primary);border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:10px;}
@@ -210,7 +213,7 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
   <p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px;text-transform:uppercase;">Important Card Color</p>
   <div class="theme-grid" id="themeGrid"></div>
   
-  <p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px;text-transform:uppercase;">Active Recurring Tasks</p>
+  <p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px;text-transform:uppercase; margin-top:20px;">Active Recurring Tasks</p>
   <div class="recur-list" id="recurList"></div>
   <button class="btn-primary" style="width:100%; border: 1px dashed var(--color-border-secondary);" onclick="openModal('modal-add-recur')">+ Add recurring task</button>
 </div>
@@ -263,20 +266,43 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
     <h3 style="margin-bottom: 15px;">Add Recurring Task</h3>
     <input type="text" id="recurTitle" class="input-base" placeholder="Task title (e.g. Car wash)">
     <select id="recurCategory" class="input-base"></select>
-    <select id="recurFreq" class="input-base">
-      <option value="7">Weekly (7 days)</option>
-      <option value="14">Bi-weekly (14 days)</option>
-      <option value="30">Monthly (30 days)</option>
-      <option value="365">Yearly (365 days)</option>
+    
+    <select id="recurType" class="input-base" onchange="toggleRecurUI()">
+      <option value="Weekly">Weekly (Specific Days)</option>
+      <option value="Monthly">Monthly (Specific Date)</option>
+      <option value="Yearly">Yearly (Specific Month & Date)</option>
     </select>
-    <label style="font-size:11px; color:var(--color-text-tertiary);">Next Due Date</label>
-    <input type="date" id="recurDate" class="input-base">
+    
+    <div id="recur-ui-weekly" class="checkbox-grid">
+      <label><input type="checkbox" value="1" class="r-day"> Mon</label>
+      <label><input type="checkbox" value="2" class="r-day"> Tue</label>
+      <label><input type="checkbox" value="3" class="r-day"> Wed</label>
+      <label><input type="checkbox" value="4" class="r-day"> Thu</label>
+      <label><input type="checkbox" value="5" class="r-day"> Fri</label>
+      <label><input type="checkbox" value="6" class="r-day"> Sat</label>
+      <label><input type="checkbox" value="0" class="r-day"> Sun</label>
+    </div>
+    
+    <div id="recur-ui-monthly" style="display:none; margin-bottom:15px;">
+      <input type="number" id="recurMonthDay" min="1" max="31" class="input-base" placeholder="Date of month (1-31)">
+    </div>
+    
+    <div id="recur-ui-yearly" style="display:none; margin-bottom:15px; display:flex; gap:10px;">
+       <select id="recurYearMonth" class="input-base">
+         <option value="1">Jan</option><option value="2">Feb</option><option value="3">Mar</option>
+         <option value="4">Apr</option><option value="5">May</option><option value="6">Jun</option>
+         <option value="7">Jul</option><option value="8">Aug</option><option value="9">Sep</option>
+         <option value="10">Oct</option><option value="11">Nov</option><option value="12">Dec</option>
+       </select>
+       <input type="number" id="recurYearDay" min="1" max="31" class="input-base" placeholder="Date (1-31)">
+    </div>
+
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
       <input type="checkbox" id="recurImportant"> <label>Mark as Important</label>
     </div>
     <div style="display:flex; justify-content:flex-end; gap:10px;">
       <button class="btn-primary" style="border:none" onclick="closeModals()">Cancel</button>
-      <button class="btn-primary" onclick="submitNewRecurring()">Save</button>
+      <button class="btn-primary" onclick="submitNewRecurring()">Save Rule</button>
     </div>
   </div>
 </div>
@@ -339,6 +365,7 @@ window.onload = async () => {
   document.getElementById('scriptUrlInput').value = scriptUrl;
   applyTheme(currentTheme);
   renderBrainDump();
+  toggleRecurUI();
   
   if (!scriptUrl) {
     document.getElementById('settingsPanel').classList.add('open');
@@ -722,15 +749,30 @@ function openAddTaskForGoal(goalId, category) {
 }
 
 // --- RECURRING SETTINGS ---
+function toggleRecurUI() {
+  const type = document.getElementById('recurType').value;
+  document.getElementById('recur-ui-weekly').style.display = (type === 'Weekly') ? 'flex' : 'none';
+  document.getElementById('recur-ui-monthly').style.display = (type === 'Monthly') ? 'block' : 'none';
+  document.getElementById('recur-ui-yearly').style.display = (type === 'Yearly') ? 'flex' : 'none';
+}
+
 function renderRecurringSettings() {
   const list = document.getElementById('recurList'); list.innerHTML = '';
-  
+  const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+
   appData.recurring.forEach(r => {
-    let freqText = 'Custom';
-    if(r.FrequencyDays == 7) freqText = 'Weekly';
-    if(r.FrequencyDays == 14) freqText = 'Bi-weekly';
-    if(r.FrequencyDays == 30) freqText = 'Monthly';
-    if(r.FrequencyDays == 365) freqText = 'Yearly';
+    let freqText = '';
+    
+    if (r.RecurrenceType === 'Weekly') {
+      try {
+        const d = JSON.parse(r.RecurrenceDetails).map(x => dayNames[x]).join(', ');
+        freqText = `Weekly on ${d}`;
+      } catch(e) { freqText = 'Weekly'; }
+    } else if (r.RecurrenceType === 'Monthly') {
+      freqText = `Monthly on the ${r.RecurrenceDetails}`;
+    } else if (r.RecurrenceType === 'Yearly') {
+      freqText = `Yearly on ${r.RecurrenceDetails}`;
+    }
 
     const d = new Date(r.NextDueDate);
     const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
@@ -806,12 +848,27 @@ async function submitNewGoal() {
 async function submitNewRecurring() {
   const title = document.getElementById('recurTitle').value;
   const category = document.getElementById('recurCategory').value;
-  const freq = document.getElementById('recurFreq').value;
-  const nextDate = document.getElementById('recurDate').value;
+  const type = document.getElementById('recurType').value;
+  
+  let details = '';
+  
+  if (type === 'Weekly') {
+    const days = Array.from(document.querySelectorAll('.r-day:checked')).map(cb => parseInt(cb.value));
+    if(days.length === 0) return alert("Select at least one day.");
+    details = JSON.stringify(days);
+  } else if (type === 'Monthly') {
+    details = document.getElementById('recurMonthDay').value;
+    if(!details || details < 1 || details > 31) return alert("Enter a valid date (1-31).");
+  } else if (type === 'Yearly') {
+    const m = document.getElementById('recurYearMonth').value;
+    const d = document.getElementById('recurYearDay').value;
+    if(!d || d < 1 || d > 31) return alert("Enter a valid date (1-31).");
+    details = `${m}-${d}`;
+  }
 
-  if(!title || !category || !nextDate) return alert("All fields are required.");
+  if(!title || !category) return alert("Title and Category are required.");
 
-  const recur = { title, category, frequencyDays: freq, nextDueDate: nextDate, important: document.getElementById('recurImportant').checked };
+  const recur = { title, category, recurType: type, recurDetails: details, important: document.getElementById('recurImportant').checked };
   closeModals();
   
   const response = await apiCall('addRecurring', recur);
