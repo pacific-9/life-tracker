@@ -91,6 +91,7 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 .goal-nav-item:hover, .goal-nav-item.active{background:var(--color-background-secondary);}
 .sub-goal{background:var(--color-background-secondary);padding:16px;border-radius:var(--border-radius-lg);margin-bottom:15px;}
 .task-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-border-tertiary);}
+.task-row:hover{background:var(--color-background-primary); cursor:pointer; border-radius:4px;}
 
 /* --- MODALS & SETTINGS --- */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:none;align-items:center;justify-content:center; padding:20px;}
@@ -105,9 +106,9 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 .theme-preview{width:100%;height:20px;border-radius:4px;margin-bottom:6px;}
 
 .recur-list{display:flex;flex-direction:column;gap:8px;margin-bottom:15px;}
-.recur-item{background:var(--color-background-primary);padding:12px;border-radius:var(--border-radius-md);display:flex;justify-content:space-between;align-items:center;border:1px solid var(--color-border-tertiary);}
+.recur-item{background:var(--color-background-primary);padding:12px;border-radius:var(--border-radius-md);display:flex;justify-content:space-between;align-items:center;border:1px solid var(--color-border-tertiary); cursor:pointer;}
+.recur-item:hover{border-color:var(--color-border-secondary);}
 .recur-icon{background:#E6F1FB;color:#042C53;padding:4px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
-
 .checkbox-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 15px; }
 .checkbox-grid label { display: flex; align-items: center; gap: 4px; background: var(--color-background-primary); padding: 6px 10px; border-radius: var(--border-radius-md); border: 1px solid var(--color-border-tertiary); cursor: pointer; }
 
@@ -146,7 +147,7 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
   <div id="kanban" class="view active">
     <div style="display:flex;justify-content:space-between;margin-bottom:15px">
       <div style="font-size:16px; font-weight:500;">Task Board</div>
-      <button class="btn-primary" onclick="openModal('modal-add-task')">+ New task</button>
+      <button class="btn-primary" onclick="openEditTaskModal()">+ New task</button>
     </div>
     <div class="board">
       <div class="col" ondragover="onDragOver(event)" ondrop="onDrop(event,'topick')">
@@ -215,12 +216,12 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
   
   <p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px;text-transform:uppercase; margin-top:20px;">Active Recurring Tasks</p>
   <div class="recur-list" id="recurList"></div>
-  <button class="btn-primary" style="width:100%; border: 1px dashed var(--color-border-secondary);" onclick="openModal('modal-add-recur')">+ Add recurring task</button>
+  <button class="btn-primary" style="width:100%; border: 1px dashed var(--color-border-secondary);" onclick="openEditRecurModal()">+ Add recurring task</button>
 </div>
 
 <div class="overlay" id="modal-add-task">
   <div class="modal">
-    <h3 style="margin-bottom: 15px;">Add New Task</h3>
+    <h3 style="margin-bottom: 15px;" id="taskModalTitle">Add New Task</h3>
     <input type="text" id="taskTitle" class="input-base" placeholder="Task title">
     <select id="taskCategory" class="input-base"></select>
     <select id="taskGoal" class="input-base"><option value="">No Goal Link</option></select>
@@ -231,7 +232,7 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
     </div>
     <div style="display:flex; justify-content:flex-end; gap:10px;">
       <button class="btn-primary" style="border:none" onclick="closeModals()">Cancel</button>
-      <button class="btn-primary" onclick="submitNewTask()">Save</button>
+      <button class="btn-primary" onclick="submitTask()">Save</button>
     </div>
   </div>
 </div>
@@ -263,7 +264,7 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 
 <div class="overlay" id="modal-add-recur">
   <div class="modal">
-    <h3 style="margin-bottom: 15px;">Add Recurring Task</h3>
+    <h3 style="margin-bottom: 15px;" id="recurModalTitle">Add Recurring Task</h3>
     <input type="text" id="recurTitle" class="input-base" placeholder="Task title (e.g. Car wash)">
     <select id="recurCategory" class="input-base"></select>
     
@@ -297,12 +298,15 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
        <input type="number" id="recurYearDay" min="1" max="31" class="input-base" placeholder="Date (1-31)">
     </div>
 
+    <label style="font-size:11px; color:var(--color-text-tertiary);">Next Due Date</label>
+    <input type="date" id="recurDate" class="input-base">
+
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
       <input type="checkbox" id="recurImportant"> <label>Mark as Important</label>
     </div>
     <div style="display:flex; justify-content:flex-end; gap:10px;">
       <button class="btn-primary" style="border:none" onclick="closeModals()">Cancel</button>
-      <button class="btn-primary" onclick="submitNewRecurring()">Save Rule</button>
+      <button class="btn-primary" onclick="submitRecurring()">Save Rule</button>
     </div>
   </div>
 </div>
@@ -319,7 +323,7 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 </div>
 
 <div class="context-menu" id="ctxMenuTask">
-  <div class="ctx-item" id="ctx-toggle-important" onclick="ctxTaskAction('toggle-important')">Mark Important</div>
+  <div class="ctx-item" onclick="openEditTaskModal(currentCtxId)">Edit Task</div>
   <div class="ctx-sep"></div>
   <div class="ctx-item" id="ctx-opt-topick" onclick="ctxTaskAction('topick')"><div class="dot" style="background:#888780"></div>Move to pick</div>
   <div class="ctx-item" id="ctx-opt-todo" onclick="ctxTaskAction('todo')"><div class="dot" style="background:#378ADD"></div>To do</div>
@@ -336,16 +340,23 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
   <div class="ctx-item" onclick="ctxGoalAction('Archive')"><div class="dot" style="background:#495057"></div>Archive</div>
 </div>
 
+<div class="context-menu" id="ctxMenuRecur">
+  <div class="ctx-item" onclick="openEditRecurModal(currentCtxId)">Edit Rule</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" style="color:#F09595" onclick="ctxRecurArchive()">Archive Rule</div>
+</div>
+
 <script>
 // --- STATE & CONFIG ---
 let scriptUrl = localStorage.getItem('life_script_url') || "";
 let currentTheme = localStorage.getItem('life_theme') || 'purple';
 let appData = { tasks: [], habitsLog: [], habitsMaster: [], goals: [], categories: [], recurring: [] };
+let optimizedHabitLogs = {}; 
 let brainDump = JSON.parse(localStorage.getItem('life_brain_dump')) || [];
 
 let dragId = null, currentCtxId = null, longPressTimer = null;
-let activeGoalId = null;
-let showHiddenGoals = false;
+let activeGoalId = null, showHiddenGoals = false;
+let editingTaskId = null, editingRecurId = null;
 
 const themes = [
   {id:'purple', name:'Purple', bg:'#3C3489', border:'#7F77DD', cls:''},
@@ -365,41 +376,62 @@ window.onload = async () => {
   document.getElementById('scriptUrlInput').value = scriptUrl;
   applyTheme(currentTheme);
   renderBrainDump();
-  toggleRecurUI();
   
   if (!scriptUrl) {
     document.getElementById('settingsPanel').classList.add('open');
   } else {
-    loadLocalStaticData();
-    await fetchDynamicData();
+    loadLocalData();
   }
 };
 
-function applyTheme(themeId) {
-  const t = themes.find(x => x.id === themeId) || themes[0];
-  document.body.className = t.cls;
-  currentTheme = themeId;
-  localStorage.setItem('life_theme', themeId);
-  buildThemeGrid();
+// --- DATA CACHING & FETCHING ---
+function loadLocalData() {
+  const staticStr = localStorage.getItem('life_static');
+  const dynamicStr = localStorage.getItem('life_dynamic');
+
+  if (staticStr && dynamicStr) {
+    const s = JSON.parse(staticStr);
+    const d = JSON.parse(dynamicStr);
+    appData.categories = s.categories || [];
+    appData.goals = s.goals || [];
+    appData.habitsMaster = s.habitsMaster || [];
+    appData.recurring = s.recurring || [];
+    appData.tasks = d.tasks || [];
+    appData.habitsLog = d.habitsLog || [];
+    buildHabitMap();
+    renderAll();
+  } else {
+    forceSync();
+  }
 }
 
-function buildThemeGrid() {
-  const grid = document.getElementById('themeGrid');
-  grid.innerHTML = '';
-  themes.forEach(th => {
-    const opt = document.createElement('div');
-    opt.className = `theme-option ${currentTheme === th.id ? 'selected' : ''}`;
-    opt.innerHTML = `<div class="theme-preview" style="background:${th.bg}; border:1px solid ${th.border}"></div><div style="font-size:11px">${th.name}</div>`;
-    opt.onclick = () => applyTheme(th.id);
-    grid.appendChild(opt);
-  });
+async function forceSync() {
+  if (!scriptUrl) return;
+  document.getElementById('syncStatus').innerText = "Syncing...";
+  
+  const staticData = await apiCall('syncStatic');
+  if (!staticData.error) {
+    appData.categories = staticData.categories || [];
+    appData.goals = staticData.goals || [];
+    appData.habitsMaster = staticData.habitsMaster || [];
+    appData.recurring = staticData.recurring || [];
+    localStorage.setItem('life_static', JSON.stringify({ categories: appData.categories, goals: appData.goals, habitsMaster: appData.habitsMaster, recurring: appData.recurring }));
+  }
+  
+  await fetchDynamicData();
+  document.getElementById('syncStatus').innerText = "Synced";
+  setTimeout(()=> document.getElementById('syncStatus').innerText = "", 3000);
 }
 
-function saveUrl() {
-  scriptUrl = document.getElementById('scriptUrlInput').value.trim();
-  localStorage.setItem('life_script_url', scriptUrl);
-  document.getElementById('settingsPanel').classList.remove('open');
-  if(appData.categories.length === 0) forceSync();
+async function fetchDynamicData() {
+  const data = await apiCall('getData');
+  if (!data.error) {
+    appData.tasks = data.tasks || [];
+    appData.habitsLog = data.habitsLog || [];
+    localStorage.setItem('life_dynamic', JSON.stringify({tasks: appData.tasks, habitsLog: appData.habitsLog}));
+    buildHabitMap();
+    renderAll();
+  }
 }
 
 async function apiCall(action, data = null) {
@@ -413,72 +445,42 @@ async function apiCall(action, data = null) {
   } catch (error) { return { error }; }
 }
 
-async function forceSync() {
-  document.getElementById('syncStatus').innerText = "Syncing...";
-  const staticData = await apiCall('syncStatic');
-  if (!staticData.error) {
-    appData.categories = staticData.categories || [];
-    appData.goals = staticData.goals || [];
-    appData.habitsMaster = staticData.habitsMaster || [];
-    appData.recurring = staticData.recurring || [];
-    localStorage.setItem('life_static', JSON.stringify({ categories: appData.categories, goals: appData.goals, habitsMaster: appData.habitsMaster, recurring: appData.recurring }));
-  }
-  await fetchDynamicData();
-  document.getElementById('syncStatus').innerText = "Synced";
-  setTimeout(()=> document.getElementById('syncStatus').innerText = "", 3000);
+function saveUrl() {
+  scriptUrl = document.getElementById('scriptUrlInput').value.trim();
+  localStorage.setItem('life_script_url', scriptUrl);
+  document.getElementById('settingsPanel').classList.remove('open');
+  if(appData.categories.length === 0) forceSync();
 }
 
-async function fetchDynamicData() {
-  const data = await apiCall('getData');
-  if (!data.error) {
-    appData.tasks = data.tasks || [];
-    appData.habitsLog = data.habitsLog || [];
-    renderAll();
-  }
+// --- THEMING ---
+function applyTheme(themeId) {
+  const t = themes.find(x => x.id === themeId) || themes[0];
+  document.body.className = t.cls;
+  currentTheme = themeId;
+  localStorage.setItem('life_theme', themeId);
+  buildThemeGrid();
+}
+function buildThemeGrid() {
+  const grid = document.getElementById('themeGrid'); grid.innerHTML = '';
+  themes.forEach(th => {
+    const opt = document.createElement('div');
+    opt.className = `theme-option ${currentTheme === th.id ? 'selected' : ''}`;
+    opt.innerHTML = `<div class="theme-preview" style="background:${th.bg}; border:1px solid ${th.border}"></div><div style="font-size:11px">${th.name}</div>`;
+    opt.onclick = () => applyTheme(th.id);
+    grid.appendChild(opt);
+  });
 }
 
-function loadLocalStaticData() {
-  const local = JSON.parse(localStorage.getItem('life_static'));
-  if (local) {
-    appData.categories = local.categories; appData.goals = local.goals; appData.habitsMaster = local.habitsMaster; appData.recurring = local.recurring || [];
-  } else if (scriptUrl) forceSync();
-}
-
-function formatRelativeDate(dateStr) {
-  if(!dateStr) return '';
-  const today = new Date(); today.setHours(0,0,0,0);
-  const d = new Date(dateStr); d.setHours(0,0,0,0);
-  const diffDays = Math.round((d - today) / (1000 * 60 * 60 * 24));
-  
-  if (diffDays === 0) return `<span class="due-text" style="color:#E9A23B;font-weight:500;">Today</span>`;
-  if (diffDays === 1) return `<span class="due-text" style="color:#E9A23B;font-weight:500;">Tomorrow</span>`;
-  if (diffDays < 0) return `<span class="due-text" style="color:#F09595;font-weight:500;">Overdue</span>`;
-  return `<span class="due-text">${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>`;
-}
-
-function calculateStreak(habitId) {
-  let streak = 0;
-  const today = new Date(); today.setHours(0,0,0,0);
-  for (let i = 0; i < 365; i++) {
-     const d = new Date(today); d.setDate(d.getDate() - i);
-     const dStr = getLocalISODate(d);
-     const log = appData.habitsLog.find(l => l.HabitID == habitId && l.Date.startsWith(dStr) && (l.Completed === true || l.Completed === 'TRUE'));
-     if (log) { streak++; } 
-     else { if (i === 0) continue; break; }
-  }
-  return streak;
-}
-
+// --- UI HELPERS ---
 function renderAll() {
-  renderKanban(); renderFocus(); renderHabits(); renderGoals(); renderRecurringSettings();
   populateDropdowns();
+  renderKanban(); renderFocus(); renderHabits(); renderGoals(); renderRecurringSettings();
 }
 
 function sw(id, el) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  el.classList.add('active');
-  document.getElementById(id).classList.add('active');
+  el.classList.add('active'); document.getElementById(id).classList.add('active');
 }
 
 function populateDropdowns() {
@@ -493,6 +495,18 @@ function populateDropdowns() {
   document.getElementById('taskGoal').innerHTML = goals;
 }
 
+function formatRelativeDate(dateStr) {
+  if(!dateStr) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(dateStr); d.setHours(0,0,0,0);
+  const diffDays = Math.round((d - today) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return `<span class="due-text" style="color:#E9A23B;font-weight:500;">Today</span>`;
+  if (diffDays === 1) return `<span class="due-text" style="color:#E9A23B;font-weight:500;">Tomorrow</span>`;
+  if (diffDays < 0) return `<span class="due-text" style="color:#F09595;font-weight:500;">Overdue</span>`;
+  return `<span class="due-text">${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>`;
+}
+
 // --- KANBAN ---
 function renderKanban() {
   const cols = ['topick', 'todo', 'inprogress', 'done'];
@@ -502,15 +516,11 @@ function renderKanban() {
     const card = document.createElement('div');
     card.className = `card ${task.Important ? 'important' : ''}`;
     card.draggable = true; card.dataset.id = task.TaskID;
-    
     card.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:flex-start;">
         <div class="card-title">${task.Title}</div>
       </div>
-      <div class="card-meta">
-        <span class="cat-pill">${task.Category}</span>
-        ${formatRelativeDate(task.DueDate)}
-      </div>`;
+      <div class="card-meta"><span class="cat-pill">${task.Category}</span>${formatRelativeDate(task.DueDate)}</div>`;
       
     card.ondragstart = () => { dragId = task.TaskID; setTimeout(()=>card.style.opacity='0.5',0); };
     card.ondragend = () => card.style.opacity='1';
@@ -520,88 +530,21 @@ function renderKanban() {
     card.ontouchend = () => clearTimeout(longPressTimer);
     card.ontouchmove = () => clearTimeout(longPressTimer);
     
-    if(document.getElementById(`col-${task.Status}`)) {
-      document.getElementById(`col-${task.Status}`).appendChild(card);
-    }
+    if(document.getElementById(`col-${task.Status}`)) document.getElementById(`col-${task.Status}`).appendChild(card);
   });
   cols.forEach(c => document.getElementById(`count-${c}`).innerText = document.getElementById(`col-${c}`).children.length);
-}
-
-// --- CONTEXT MENUS ---
-function openMenu(e, menuId, targetId) {
-  currentCtxId = targetId;
-  const menu = document.getElementById(menuId);
-  
-  if(menuId === 'ctxMenuTask') {
-    const task = appData.tasks.find(t => t.TaskID == targetId);
-    document.getElementById('ctx-toggle-important').innerText = task.Important ? "Unmark Important" : "Mark Important";
-    
-    ['topick', 'todo', 'inprogress', 'done'].forEach(s => {
-      const el = document.getElementById(`ctx-opt-${s}`);
-      if(el) el.style.display = (task.Status === s) ? 'none' : 'flex';
-    });
-  }
-
-  let x = e.clientX || (e.touches && e.touches[0].clientX);
-  let y = e.clientY || (e.touches && e.touches[0].clientY);
-  
-  menu.style.display = 'block';
-  if (x + 180 > window.innerWidth) x -= 180;
-  if (y + 250 > window.innerHeight) y -= 250;
-  
-  menu.style.left = `${x}px`;
-  menu.style.top = `${y}px`;
-}
-
-document.addEventListener('click', (e) => {
-  if(!e.target.closest('.context-menu') && !e.target.closest('.card') && !e.target.closest('.habit-card') && !e.target.closest('.goal-nav-item')) {
-    document.querySelectorAll('.context-menu').forEach(m => m.style.display = 'none');
-  }
-});
-
-function ctxTaskAction(action) {
-  document.getElementById('ctxMenuTask').style.display = 'none';
-  if (!currentCtxId) return;
-  const task = appData.tasks.find(t => t.TaskID == currentCtxId);
-  
-  if (action === 'toggle-important') {
-    task.Important = !task.Important;
-    renderAll();
-    apiCall('toggleImportant', { taskId: currentCtxId, important: task.Important });
-  } else if (action === 'discard') {
-    openConfirm("Discard Task?", "It will be removed from your board but kept in your sheet.", () => {
-      task.Status = 'discarded'; renderAll(); apiCall('updateTaskStatus', { taskId: currentCtxId, status: 'discarded' });
-    });
-  } else {
-    task.Status = action; renderAll(); apiCall('updateTaskStatus', { taskId: currentCtxId, status: action });
-  }
-}
-
-function ctxGoalAction(status) {
-  document.getElementById('ctxMenuGoal').style.display = 'none';
-  if (!currentCtxId) return;
-  const goal = appData.goals.find(g => g.GoalID == currentCtxId);
-  goal.Status = status;
-  renderAll();
-  apiCall('updateGoalStatus', { goalId: currentCtxId, status: status });
-}
-
-function onDragOver(e) { e.preventDefault(); }
-function onDrop(e, status) {
-  e.preventDefault(); if (!dragId) return;
-  const task = appData.tasks.find(t => t.TaskID == dragId);
-  if (task && task.Status !== status) {
-    task.Status = status; renderAll();
-    apiCall('updateTaskStatus', { taskId: dragId, status });
-  }
-  dragId = null;
 }
 
 // --- DAILY FOCUS ---
 function renderFocus() {
   const list = document.getElementById('focus-task-list'); list.innerHTML = '';
-  const focusTasks = appData.tasks.filter(t => t.Status === 'todo' || t.Status === 'inprogress')
-                                  .sort((a,b) => (a.Status === 'inprogress' ? -1 : 1));
+  
+  const focusTasks = appData.tasks
+    .filter(t => t.Status === 'todo' || t.Status === 'inprogress')
+    .sort((a, b) => {
+      if (a.Status !== b.Status) return a.Status === 'inprogress' ? -1 : 1;
+      return (b.Important === true ? 1 : 0) - (a.Important === true ? 1 : 0);
+    });
   
   if(focusTasks.length === 0) list.innerHTML = `<p style="color:var(--color-text-tertiary);font-size:12px;">No active tasks available.</p>`;
   
@@ -626,12 +569,39 @@ function cycleFocusTask(id, currentStatus) {
   const t = appData.tasks.find(x => x.TaskID == id);
   if(t) { 
     t.Status = (currentStatus === 'todo') ? 'inprogress' : 'done';
+    localStorage.setItem('life_dynamic', JSON.stringify({tasks: appData.tasks, habitsLog: appData.habitsLog}));
     renderAll(); 
     apiCall('updateTaskStatus', {taskId: id, status: t.Status}); 
   }
 }
 
-// --- HABITS ---
+// --- HABITS (OPTIMIZED) ---
+function buildHabitMap() {
+  optimizedHabitLogs = {};
+  appData.habitsLog.forEach(l => {
+    if (l.Completed === true || l.Completed === 'TRUE') {
+      if (!optimizedHabitLogs[l.HabitID]) optimizedHabitLogs[l.HabitID] = new Set();
+      optimizedHabitLogs[l.HabitID].add(String(l.Date).split('T')[0]);
+    }
+  });
+}
+
+function checkHabitMap(id, dateStr) {
+  return optimizedHabitLogs[id] ? optimizedHabitLogs[id].has(dateStr) : false;
+}
+
+function calculateStreak(habitId) {
+  let streak = 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = 0; i < 365; i++) {
+     const d = new Date(today); d.setDate(d.getDate() - i);
+     const dStr = getLocalISODate(d);
+     if (checkHabitMap(habitId, dStr)) { streak++; } 
+     else { if (i === 0) continue; break; }
+  }
+  return streak;
+}
+
 function renderHabits() {
   const list = document.getElementById('habits-list'); list.innerHTML = '';
   const daysHeader = ['M','T','W','T','F','S','S'];
@@ -654,7 +624,7 @@ function renderHabits() {
       const d = new Date(monday); d.setDate(monday.getDate() + i);
       const dStr = getLocalISODate(d);
       const isFuture = d > currDate;
-      const done = appData.habitsLog.some(l => l.HabitID == h.HabitID && l.Date.startsWith(dStr) && (l.Completed === true || l.Completed === 'TRUE'));
+      const done = checkHabitMap(h.HabitID, dStr);
       
       rowHtml += `<div class="day-col">
         <span style="font-size:10px; color:var(--color-text-tertiary)">${daysHeader[i]}</span>
@@ -662,27 +632,34 @@ function renderHabits() {
       </div>`;
     }
     
-    card.innerHTML = `
-      <div style="display:flex; justify-content:space-between; align-items:center;">
-        <div style="font-weight:500; font-size:14px;">${h.Icon||''} ${h.Name}</div>
-        ${streak > 0 ? `<div class="streak-badge">🔥 ${streak}</div>` : ''}
-      </div>
-      ${rowHtml}</div>`;
+    card.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:center;"><div style="font-weight:500; font-size:14px;">${h.Icon||''} ${h.Name}</div>${streak > 0 ? `<div class="streak-badge">🔥 ${streak}</div>` : ''}</div>${rowHtml}</div>`;
     list.appendChild(card);
   });
 }
 
 function promptDisableHabit(id, name) {
-  openConfirm("Disable Habit?", `Are you sure you want to disable "${name}"? It will be hidden from your tracker.`, () => {
+  openConfirm("Disable Habit?", `Are you sure you want to disable "${name}"?`, () => {
     const habit = appData.habitsMaster.find(h => h.HabitID == id);
-    habit.Active = false; renderHabits(); apiCall('disableHabit', { habitId: id }); closeModals();
+    habit.Active = false; 
+    localStorage.setItem('life_static', JSON.stringify({ categories: appData.categories, goals: appData.goals, habitsMaster: appData.habitsMaster, recurring: appData.recurring }));
+    renderHabits(); apiCall('disableHabit', { habitId: id }); closeModals();
   });
 }
 
 function toggleHabit(id, date, completed) {
   let log = appData.habitsLog.find(l => l.HabitID == id && l.Date.startsWith(date));
   if(log) log.Completed = completed; else appData.habitsLog.push({HabitID: id, Date: date, Completed: completed});
-  renderHabits(); apiCall('logHabit', {habitId: id, date, completed});
+  
+  if (completed) {
+    if (!optimizedHabitLogs[id]) optimizedHabitLogs[id] = new Set();
+    optimizedHabitLogs[id].add(date);
+  } else if (optimizedHabitLogs[id]) {
+    optimizedHabitLogs[id].delete(date);
+  }
+
+  localStorage.setItem('life_dynamic', JSON.stringify({tasks: appData.tasks, habitsLog: appData.habitsLog}));
+  renderHabits(); 
+  apiCall('logHabit', {habitId: id, date, completed});
 }
 
 // --- GOALS ---
@@ -697,7 +674,6 @@ function renderGoals() {
   const main = document.getElementById('goals-main'); main.innerHTML = '';
   
   const visibleGoals = appData.goals.filter(g => showHiddenGoals || g.Status === 'Active');
-  
   if(!activeGoalId && visibleGoals.length > 0) activeGoalId = visibleGoals[0].GoalID;
 
   visibleGoals.forEach(g => {
@@ -722,30 +698,19 @@ function renderGoals() {
 
   const active = visibleGoals.find(g => g.GoalID == activeGoalId);
   if(active) {
-    main.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:15px;">
-        <h3>${active.Label} Tasks</h3>
-        <span style="font-size:11px; color:var(--color-text-tertiary)">Status: ${active.Status}</span>
-      </div>`;
+    main.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:15px;"><h3>${active.Label} Tasks</h3><span style="font-size:11px; color:var(--color-text-tertiary)">Status: ${active.Status}</span></div>`;
     const tasks = appData.tasks.filter(t => t.GoalID == active.GoalID && t.Status !== 'discarded');
     if(tasks.length === 0) main.innerHTML += `<p style="font-size:12px; color:var(--color-text-tertiary)">No tasks linked to this goal yet.</p>`;
     
     tasks.forEach(t => {
-      main.innerHTML += `<div class="task-row">
+      main.innerHTML += `<div class="task-row" onclick="openEditTaskModal('${t.TaskID}')">
         <div class="f-check ${t.Status === 'done' ? 'done' : ''}" style="width:16px; height:16px;"></div>
         <span style="${t.Status === 'done' ? 'text-decoration:line-through; opacity:0.5' : ''}">${t.Title}</span>
         <span class="cat-pill" style="margin-left:auto; font-size:10px">${t.Status}</span>
       </div>`;
     });
-    main.innerHTML += `<div style="margin-top:15px; color:var(--color-text-tertiary); font-size:12px; cursor:pointer;" onclick="openAddTaskForGoal('${active.GoalID}', '${active.Category}')">+ Add task to this goal</div>`;
+    main.innerHTML += `<div style="margin-top:15px; color:var(--color-text-tertiary); font-size:12px; cursor:pointer;" onclick="openEditTaskModal(null, '${active.GoalID}', '${active.Category}')">+ Add task to this goal</div>`;
   }
-}
-
-function openAddTaskForGoal(goalId, category) {
-  openModal('modal-add-task');
-  setTimeout(() => {
-    document.getElementById('taskGoal').value = goalId;
-    document.getElementById('taskCategory').value = category;
-  }, 50);
 }
 
 // --- RECURRING SETTINGS ---
@@ -760,31 +725,101 @@ function renderRecurringSettings() {
   const list = document.getElementById('recurList'); list.innerHTML = '';
   const dayNames = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-  appData.recurring.forEach(r => {
+  appData.recurring.filter(r => r.Status === 'Active').forEach(r => {
     let freqText = '';
-    
     if (r.RecurrenceType === 'Weekly') {
-      try {
-        const d = JSON.parse(r.RecurrenceDetails).map(x => dayNames[x]).join(', ');
-        freqText = `Weekly on ${d}`;
-      } catch(e) { freqText = 'Weekly'; }
+      try { freqText = `Weekly on ` + JSON.parse(r.RecurrenceDetails).map(x => dayNames[x]).join(', '); } 
+      catch(e) { freqText = 'Weekly'; }
     } else if (r.RecurrenceType === 'Monthly') {
       freqText = `Monthly on the ${r.RecurrenceDetails}`;
     } else if (r.RecurrenceType === 'Yearly') {
       freqText = `Yearly on ${r.RecurrenceDetails}`;
     }
 
-    const d = new Date(r.NextDueDate);
-    const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
-
-    list.innerHTML += `<div class="recur-item">
-      <div>
-        <div style="font-weight:500; font-size:14px;">${r.Title}</div>
-        <div style="font-size:11px; color:var(--color-text-tertiary); margin-top:2px;">${freqText} · Next: ${dateStr}</div>
-      </div>
-      <div class="recur-icon">↻</div>
-    </div>`;
+    const dateStr = new Date(r.NextDueDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+    const el = document.createElement('div');
+    el.className = 'recur-item';
+    el.innerHTML = `<div><div style="font-weight:500; font-size:14px;">${r.Title}</div><div style="font-size:11px; color:var(--color-text-tertiary); margin-top:2px;">${freqText} · Next: ${dateStr}</div></div><div class="recur-icon">↻</div>`;
+    
+    el.oncontextmenu = (e) => { e.preventDefault(); openMenu(e, 'ctxMenuRecur', r.TemplateID); };
+    el.ontouchstart = (e) => { longPressTimer = setTimeout(() => openMenu(e, 'ctxMenuRecur', r.TemplateID), 500); };
+    el.ontouchend = () => clearTimeout(longPressTimer);
+    el.ontouchmove = () => clearTimeout(longPressTimer);
+    
+    list.appendChild(el);
   });
+}
+
+// --- CONTEXT MENUS ---
+function openMenu(e, menuId, targetId) {
+  currentCtxId = targetId;
+  const menu = document.getElementById(menuId);
+  
+  if(menuId === 'ctxMenuTask') {
+    const task = appData.tasks.find(t => t.TaskID == targetId);
+    ['topick', 'todo', 'inprogress', 'done'].forEach(s => {
+      const el = document.getElementById(`ctx-opt-${s}`);
+      if(el) el.style.display = (task.Status === s) ? 'none' : 'flex';
+    });
+  }
+
+  let x = e.clientX || (e.touches && e.touches[0].clientX);
+  let y = e.clientY || (e.touches && e.touches[0].clientY);
+  
+  menu.style.display = 'block';
+  if (x + 180 > window.innerWidth) x -= 180;
+  if (y + 250 > window.innerHeight) y -= 250;
+  menu.style.left = `${x}px`; menu.style.top = `${y}px`;
+}
+
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('.context-menu') && !e.target.closest('.card') && !e.target.closest('.habit-card') && !e.target.closest('.goal-nav-item') && !e.target.closest('.recur-item')) {
+    document.querySelectorAll('.context-menu').forEach(m => m.style.display = 'none');
+  }
+});
+
+function ctxTaskAction(action) {
+  document.getElementById('ctxMenuTask').style.display = 'none';
+  if (!currentCtxId) return;
+  const task = appData.tasks.find(t => t.TaskID == currentCtxId);
+  
+  if (action === 'discard') {
+    openConfirm("Discard Task?", "It will be removed from your board but kept in your sheet.", () => {
+      task.Status = 'discarded'; localStorage.setItem('life_dynamic', JSON.stringify({tasks: appData.tasks, habitsLog: appData.habitsLog})); renderAll(); apiCall('updateTaskStatus', { taskId: currentCtxId, status: 'discarded' }); closeModals();
+    });
+  } else {
+    task.Status = action; localStorage.setItem('life_dynamic', JSON.stringify({tasks: appData.tasks, habitsLog: appData.habitsLog})); renderAll(); apiCall('updateTaskStatus', { taskId: currentCtxId, status: action });
+  }
+}
+
+function ctxGoalAction(status) {
+  document.getElementById('ctxMenuGoal').style.display = 'none';
+  if (!currentCtxId) return;
+  appData.goals.find(g => g.GoalID == currentCtxId).Status = status;
+  localStorage.setItem('life_static', JSON.stringify({ categories: appData.categories, goals: appData.goals, habitsMaster: appData.habitsMaster, recurring: appData.recurring }));
+  renderAll();
+  apiCall('updateGoalStatus', { goalId: currentCtxId, status: status });
+}
+
+function ctxRecurArchive() {
+  document.getElementById('ctxMenuRecur').style.display = 'none';
+  if (!currentCtxId) return;
+  openConfirm("Archive Rule?", "This will stop generating new tasks.", () => {
+    appData.recurring.find(r => r.TemplateID == currentCtxId).Status = 'Archived';
+    localStorage.setItem('life_static', JSON.stringify({ categories: appData.categories, goals: appData.goals, habitsMaster: appData.habitsMaster, recurring: appData.recurring }));
+    renderAll(); apiCall('archiveRecurring', { templateId: currentCtxId }); closeModals();
+  });
+}
+
+function onDragOver(e) { e.preventDefault(); }
+function onDrop(e, status) {
+  e.preventDefault(); if (!dragId) return;
+  const task = appData.tasks.find(t => t.TaskID == dragId);
+  if (task && task.Status !== status) {
+    task.Status = status; localStorage.setItem('life_dynamic', JSON.stringify({tasks: appData.tasks, habitsLog: appData.habitsLog})); renderAll();
+    apiCall('updateTaskStatus', { taskId: dragId, status });
+  }
+  dragId = null;
 }
 
 // --- FORMS & MODALS ---
@@ -798,7 +833,31 @@ function openConfirm(title, desc, callback) {
   openModal('modal-confirm');
 }
 
-function submitNewTask() {
+function openEditTaskModal(taskId = null, presetGoal = '', presetCat = '') {
+  editingTaskId = taskId;
+  document.getElementById('ctxMenuTask').style.display = 'none';
+  
+  if (taskId) {
+    const t = appData.tasks.find(x => x.TaskID == taskId);
+    document.getElementById('taskModalTitle').innerText = "Edit Task";
+    document.getElementById('taskTitle').value = t.Title;
+    document.getElementById('taskCategory').value = t.Category;
+    document.getElementById('taskGoal').value = t.GoalID || '';
+    document.getElementById('taskDue').value = t.DueDate ? String(t.DueDate).split('T')[0] : '';
+    document.getElementById('taskImportant').checked = t.Important === true || t.Important === 'TRUE';
+  } else {
+    document.getElementById('taskModalTitle').innerText = "Add New Task";
+    document.getElementById('taskTitle').value = '';
+    document.getElementById('taskCategory').value = presetCat;
+    document.getElementById('taskGoal').value = presetGoal;
+    document.getElementById('taskDue').value = '';
+    document.getElementById('taskImportant').checked = false;
+  }
+  document.getElementById('taskError').style.display = 'none';
+  openModal('modal-add-task');
+}
+
+function submitTask() {
   const title = document.getElementById('taskTitle').value;
   const category = document.getElementById('taskCategory').value;
   const dueDate = document.getElementById('taskDue').value;
@@ -807,49 +866,66 @@ function submitNewTask() {
     document.getElementById('taskError').style.display = 'block';
     return;
   }
-  document.getElementById('taskError').style.display = 'none';
 
-  const task = { title, category, goalId: document.getElementById('taskGoal').value, dueDate, important: document.getElementById('taskImportant').checked, status: 'topick' };
-  
+  const taskData = { title, category, goalId: document.getElementById('taskGoal').value, dueDate, important: document.getElementById('taskImportant').checked };
   closeModals();
-  appData.tasks.push({...task, TaskID: 'temp_'+Date.now(), Important: task.important, Status: 'topick'});
-  renderAll();
-  apiCall('addTask', task).then(res => { if(res.success) fetchDynamicData(); });
+
+  if (editingTaskId) {
+    const t = appData.tasks.find(x => x.TaskID == editingTaskId);
+    Object.assign(t, {Title: title, Category: category, GoalID: taskData.goalId, DueDate: dueDate, Important: taskData.important});
+    localStorage.setItem('life_dynamic', JSON.stringify({tasks: appData.tasks, habitsLog: appData.habitsLog}));
+    renderAll();
+    apiCall('updateTask', { taskId: editingTaskId, ...taskData });
+  } else {
+    const newTask = {...taskData, TaskID: 'temp_'+Date.now(), Important: taskData.important, Status: 'topick'};
+    appData.tasks.push(newTask);
+    localStorage.setItem('life_dynamic', JSON.stringify({tasks: appData.tasks, habitsLog: appData.habitsLog}));
+    renderAll();
+    apiCall('addTask', { ...taskData, status: 'topick' }).then(res => { if(res.success) fetchDynamicData(); });
+  }
+  editingTaskId = null;
 }
 
-async function submitNewHabit() {
-  const name = document.getElementById('habitName').value;
-  const category = document.getElementById('habitCategory').value;
-  if(!name || !category) return alert("Name and Category required.");
+function openEditRecurModal(templateId = null) {
+  editingRecurId = templateId;
+  document.getElementById('ctxMenuRecur').style.display = 'none';
   
-  const habit = { name, icon: document.getElementById('habitIcon').value, category };
-  closeModals();
-  appData.habitsMaster.push({ HabitID: 'temp_'+Date.now(), Name: habit.name, Icon: habit.icon, Category: habit.category, Active: true, Frequency: 'Daily' });
-  renderHabits();
-  
-  const response = await apiCall('addHabit', habit); 
-  if(response.success) { forceSync(); }
+  if (templateId) {
+    const r = appData.recurring.find(x => x.TemplateID == templateId);
+    document.getElementById('recurModalTitle').innerText = "Edit Rule";
+    document.getElementById('recurTitle').value = r.Title;
+    document.getElementById('recurCategory').value = r.Category;
+    document.getElementById('recurType').value = r.RecurrenceType;
+    document.getElementById('recurDate').value = r.NextDueDate ? String(r.NextDueDate).split('T')[0] : '';
+    document.getElementById('recurImportant').checked = r.Important === true || r.Important === 'TRUE';
+    
+    toggleRecurUI();
+    if(r.RecurrenceType === 'Weekly') {
+       try {
+         const days = JSON.parse(r.RecurrenceDetails);
+         document.querySelectorAll('.r-day').forEach(cb => cb.checked = days.includes(parseInt(cb.value)));
+       } catch(e){}
+    } else if(r.RecurrenceType === 'Monthly') {
+       document.getElementById('recurMonthDay').value = r.RecurrenceDetails;
+    } else if(r.RecurrenceType === 'Yearly') {
+       const p = String(r.RecurrenceDetails).split('-');
+       if(p.length === 2) { document.getElementById('recurYearMonth').value = p[0]; document.getElementById('recurYearDay').value = p[1]; }
+    }
+  } else {
+    document.getElementById('recurModalTitle').innerText = "Add Recurring Task";
+    document.getElementById('recurTitle').value = '';
+    document.getElementById('recurType').value = 'Weekly';
+    document.getElementById('recurDate').value = '';
+    document.querySelectorAll('.r-day').forEach(cb => cb.checked = false);
+    toggleRecurUI();
+  }
+  openModal('modal-add-recur');
 }
 
-async function submitNewGoal() {
-  const label = document.getElementById('goalLabel').value;
-  const category = document.getElementById('goalCategory').value;
-  if(!label || !category) return alert("Name and Category required.");
-  
-  const goal = { label, category };
-  closeModals();
-  appData.goals.push({ GoalID: 'temp_'+Date.now(), Label: goal.label, Category: goal.category, Status: 'Active' });
-  renderGoals();
-  
-  const response = await apiCall('addGoal', goal);
-  if(response.success) { forceSync(); }
-}
-
-async function submitNewRecurring() {
+async function submitRecurring() {
   const title = document.getElementById('recurTitle').value;
   const category = document.getElementById('recurCategory').value;
   const type = document.getElementById('recurType').value;
-  
   let details = '';
   
   if (type === 'Weekly') {
@@ -868,11 +944,20 @@ async function submitNewRecurring() {
 
   if(!title || !category) return alert("Title and Category are required.");
 
-  const recur = { title, category, recurType: type, recurDetails: details, important: document.getElementById('recurImportant').checked };
+  const recurData = { title, category, recurType: type, recurDetails: details, important: document.getElementById('recurImportant').checked, nextDueDate: document.getElementById('recurDate').value };
   closeModals();
   
-  const response = await apiCall('addRecurring', recur);
-  if(response.success) { forceSync(); }
+  if (editingRecurId) {
+    const r = appData.recurring.find(x => x.TemplateID == editingRecurId);
+    Object.assign(r, {Title: title, Category: category, RecurrenceType: type, RecurrenceDetails: details, Important: recurData.important, NextDueDate: recurData.nextDueDate});
+    localStorage.setItem('life_static', JSON.stringify({ categories: appData.categories, goals: appData.goals, habitsMaster: appData.habitsMaster, recurring: appData.recurring }));
+    renderAll();
+    apiCall('updateRecurring', { templateId: editingRecurId, ...recurData });
+  } else {
+    const response = await apiCall('addRecurring', recurData);
+    if(response.success) forceSync();
+  }
+  editingRecurId = null;
 }
 
 // --- BRAIN DUMP ---
@@ -885,7 +970,7 @@ function handleBrainAdd(e) {
 }
 function renderBrainDump() {
   const list = document.getElementById('brain-list'); list.innerHTML = '';
-  brainDump.forEach(b => list.innerHTML += `<div class="brain-item"><span>${b.text}</span><span style="cursor:pointer; color:#F09595;" onclick="removeBrain(${b.id})">✕</span></div>`);
+  brainDump.forEach(b => list.innerHTML += `<div class="brain-item"><span>${b.text}</span><span style="cursor:pointer; color:#F09595; padding:0 8px;" onclick="removeBrain(${b.id})">✕</span></div>`);
 }
 function removeBrain(id) {
   brainDump = brainDump.filter(x => x.id !== id);
