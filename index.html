@@ -19,9 +19,7 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
   --color-border-tertiary: #343a40;
   --border-radius-md: 6px; --border-radius-lg: 10px;
   
-  /* Default Theme: Purple */
   --imp-bg:#3C3489;--imp-border:#7F77DD;--imp-text:#EEEDFE;--imp-sub:#AFA9EC;
-  --imp-soon:#FAC775;--imp-over:#F09595;--imp-badge:rgba(255,255,255,0.12);
 }
 .theme-teal{--imp-bg:#085041;--imp-border:#1D9E75;--imp-text:#E1F5EE;--imp-sub:#9FE1CB;}
 .theme-amber{--imp-bg:#633806;--imp-border:#EF9F27;--imp-text:#FAEEDA;--imp-sub:#FAC775;}
@@ -47,14 +45,16 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 .col{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:12px;min-height:400px}
 .col-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;font-weight:500;color:var(--color-text-secondary)}
 .col-count{font-size:11px;background:var(--color-background-primary);border-radius:20px;padding:2px 8px;}
-.card{border-radius:var(--border-radius-md);padding:12px;margin-bottom:10px;cursor:grab;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);}
-.card.important{background:var(--imp-bg);border-color:var(--imp-bg);border-left:3px solid var(--imp-border);}
+.card{border-radius:var(--border-radius-md);padding:12px;margin-bottom:10px;cursor:grab;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary); position: relative; user-select: none;}
+.card.important{background:var(--imp-bg);border-color:var(--imp-bg);border-left:3px solid var(--imp-border); color: var(--imp-text);}
 .card.important .card-title{color:var(--imp-text)}
-.card.important .due{color:var(--imp-sub)}
 .card-title{font-size:14px;font-weight:500;margin-bottom:8px;line-height:1.4}
-.card-meta{display:flex;gap:6px;font-size:11px;align-items:center;flex-wrap:wrap}
-.cat-pill{padding:2px 8px;border-radius:12px;background:var(--color-background-secondary);color:var(--color-text-primary)}
-.due{color:var(--color-text-tertiary)}
+.card-meta{display:flex;gap:8px;font-size:11px;align-items:center;flex-wrap:wrap}
+.cat-pill{padding:3px 8px;border-radius:12px;background:var(--color-background-secondary);color:var(--color-text-primary); font-weight:500;}
+.card.important .cat-pill{background:rgba(255,255,255,0.15); color:var(--imp-text);}
+.due-text{color:var(--color-text-tertiary);}
+.stack-badge{margin-left:auto; background:var(--color-background-secondary); padding:2px 6px; border-radius:12px; font-size:10px; color:var(--color-text-tertiary);}
+.card.important .stack-badge{background:rgba(0,0,0,0.2); color:var(--imp-sub);}
 .col-drop-zone{min-height:50px}
 .drag-over-col{outline:2px dashed var(--color-border-secondary);outline-offset:-4px}
 
@@ -72,18 +72,19 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 .habit-card{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:12px;}
 .week-row{display:flex;align-items:center;gap:10px;margin-top:12px;}
 .day-col{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
-.day-dot{width:24px;height:24px;border-radius:50%;border:1px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;font-size:10px;cursor:pointer;}
+.day-dot{width:28px;height:28px;border-radius:50%;border:1px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;transition:all 0.2s;}
 .day-dot.done{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.day-dot.future{opacity:0.2; cursor:default;}
 .goals-layout{display:grid;grid-template-columns:250px 1fr;gap:20px;}
 .goal-nav-item{padding:10px;border-radius:var(--border-radius-md);cursor:pointer;margin-bottom:5px;font-weight:500;}
 .goal-nav-item:hover, .goal-nav-item.active{background:var(--color-background-secondary);}
 .sub-goal{background:var(--color-background-secondary);padding:16px;border-radius:var(--border-radius-lg);margin-bottom:15px;}
 .task-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-border-tertiary);}
 
-/* --- MODALS & SETTINGS PANEL --- */
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:none;align-items:center;justify-content:center}
+/* --- MODALS & MENUS --- */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:none;align-items:center;justify-content:center; padding:20px;}
 .overlay.show{display:flex}
-.modal{background:var(--color-background-secondary);padding:24px;border-radius:var(--border-radius-lg);width:90%;max-width:400px; border: 1px solid var(--color-border-tertiary);}
+.modal{background:var(--color-background-secondary);padding:24px;border-radius:var(--border-radius-lg);width:100%;max-width:400px; border: 1px solid var(--color-border-tertiary);}
 .input-base{width:100%;padding:10px;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);margin-bottom:15px;}
 .settings-panel{position:fixed;top:0;right:0;height:100%;width:300px;background:var(--color-background-secondary);border-left:1px solid var(--color-border-tertiary);z-index:900;transform:translateX(100%);transition:transform 0.3s ease;padding:20px; overflow-y:auto;}
 .settings-panel.open{transform:translateX(0)}
@@ -91,6 +92,22 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 .theme-option{border-radius:var(--border-radius-md);padding:10px;cursor:pointer;border:2px solid transparent;text-align:center;background:var(--color-background-primary);}
 .theme-option.selected{border-color:var(--color-text-primary);}
 .theme-preview{width:100%;height:20px;border-radius:4px;margin-bottom:6px;}
+
+/* Context Menu */
+.context-menu{position:fixed;background:var(--color-background-secondary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px;z-index:2000;min-width:180px;display:none;box-shadow:0 10px 20px rgba(0,0,0,0.5);}
+.ctx-item{padding:10px 12px;font-size:13px;color:var(--color-text-primary);border-radius:4px;cursor:pointer;display:flex;align-items:center;gap:10px;}
+.ctx-item:hover{background:var(--color-background-primary);}
+.ctx-sep{height:1px;background:var(--color-border-tertiary);margin:6px 0;}
+.dot{width:8px;height:8px;border-radius:50%;}
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+  .board { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 15px; }
+  .col { min-width: 85vw; scroll-snap-align: center; }
+  .goals-layout { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: 1fr; }
+  .week-row { gap: 5px; }
+}
 </style>
 </head>
 <body>
@@ -117,19 +134,19 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
     </div>
     <div class="board">
       <div class="col" ondragover="onDragOver(event)" ondrop="onDrop(event,'topick')">
-        <div class="col-head">To pick <span class="col-count" id="count-topick">0</span></div>
+        <div class="col-head"><div style="display:flex;align-items:center;gap:6px"><div class="dot" style="background:#888780"></div>To pick</div> <span class="col-count" id="count-topick">0</span></div>
         <div class="col-drop-zone" id="col-topick"></div>
       </div>
       <div class="col" ondragover="onDragOver(event)" ondrop="onDrop(event,'todo')">
-        <div class="col-head" style="color:#378ADD">To do <span class="col-count" id="count-todo">0</span></div>
+        <div class="col-head"><div style="display:flex;align-items:center;gap:6px"><div class="dot" style="background:#378ADD"></div>To do</div> <span class="col-count" id="count-todo">0</span></div>
         <div class="col-drop-zone" id="col-todo"></div>
       </div>
       <div class="col" ondragover="onDragOver(event)" ondrop="onDrop(event,'inprogress')">
-        <div class="col-head" style="color:#1D9E75">In progress <span class="col-count" id="count-inprogress">0</span></div>
+        <div class="col-head"><div style="display:flex;align-items:center;gap:6px"><div class="dot" style="background:#1D9E75"></div>In progress</div> <span class="col-count" id="count-inprogress">0</span></div>
         <div class="col-drop-zone" id="col-inprogress"></div>
       </div>
       <div class="col" ondragover="onDragOver(event)" ondrop="onDrop(event,'done')">
-        <div class="col-head">Done <span class="col-count" id="count-done">0</span></div>
+        <div class="col-head"><div style="display:flex;align-items:center;gap:6px"><div class="dot" style="background:#1D9E75"></div>Done</div> <span class="col-count" id="count-done">0</span></div>
         <div class="col-drop-zone" id="col-done"></div>
       </div>
     </div>
@@ -171,11 +188,9 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
     <h3>Settings</h3>
     <span style="cursor:pointer;font-size:18px;" onclick="document.getElementById('settingsPanel').classList.remove('open')">✕</span>
   </div>
-  
   <p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px;text-transform:uppercase;">Database Connection</p>
   <input type="url" id="scriptUrlInput" class="input-base" placeholder="Paste Apps Script URL here">
   <button class="btn-primary" style="width:100%; margin-bottom:30px;" onclick="saveUrl()">Save URL</button>
-
   <p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px;text-transform:uppercase;">Important Card Color</p>
   <div class="theme-grid" id="themeGrid"></div>
 </div>
@@ -222,13 +237,35 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
   </div>
 </div>
 
+<div class="overlay" id="modal-discard">
+  <div class="modal">
+    <h3 style="margin-bottom: 10px; color:#F09595;">Discard Task?</h3>
+    <p style="color:var(--color-text-secondary); margin-bottom: 20px;">Are you sure you want to discard this task? It will be removed from your board but kept in your Google Sheet for records.</p>
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button class="btn-primary" style="border:none" onclick="closeModals()">Cancel</button>
+      <button class="btn-primary" style="background:#F09595; color:#1e1e1e; border:none;" onclick="confirmDiscard()">Discard</button>
+    </div>
+  </div>
+</div>
+
+<div class="context-menu" id="contextMenu">
+  <div class="ctx-item" id="ctx-toggle-important" onclick="ctxAction('toggle-important')">Mark Important</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" onclick="ctxAction('topick')"><div class="dot" style="background:#888780"></div>Move to pick</div>
+  <div class="ctx-item" onclick="ctxAction('todo')"><div class="dot" style="background:#378ADD"></div>To do</div>
+  <div class="ctx-item" onclick="ctxAction('inprogress')"><div class="dot" style="background:#1D9E75"></div>In progress</div>
+  <div class="ctx-item" onclick="ctxAction('done')"><div class="dot" style="background:#1D9E75"></div>Done</div>
+  <div class="ctx-sep"></div>
+  <div class="ctx-item" style="color:#F09595" onclick="ctxAction('discard')">Discard task</div>
+</div>
+
 <script>
 // --- STATE & CONFIG ---
 let scriptUrl = localStorage.getItem('life_script_url') || "";
 let currentTheme = localStorage.getItem('life_theme') || 'purple';
 let appData = { tasks: [], habitsLog: [], habitsMaster: [], goals: [], categories: [] };
 let brainDump = JSON.parse(localStorage.getItem('life_brain_dump')) || [];
-let dragId = null;
+let dragId = null, currentCtxTaskId = null, longPressTimer = null;
 let activeGoalId = null;
 
 const themes = [
@@ -324,6 +361,19 @@ function loadLocalStaticData() {
   } else if (scriptUrl) forceSync();
 }
 
+// --- FORMATTERS ---
+function formatRelativeDate(dateStr) {
+  if(!dateStr) return '';
+  const today = new Date(); today.setHours(0,0,0,0);
+  const d = new Date(dateStr); d.setHours(0,0,0,0);
+  const diffDays = Math.round((d - today) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays === 0) return `<span class="due-text" style="color:#E9A23B;font-weight:500;">Today</span>`;
+  if (diffDays === 1) return `<span class="due-text" style="color:#E9A23B;font-weight:500;">Tomorrow</span>`;
+  if (diffDays < 0) return `<span class="due-text" style="color:#F09595;font-weight:500;">Overdue</span>`;
+  return `<span class="due-text">${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>`;
+}
+
 // --- RENDERING ---
 function renderAll() {
   renderKanban(); renderFocus(); renderHabits(); renderGoals();
@@ -352,20 +402,88 @@ function renderKanban() {
   const cols = ['topick', 'todo', 'inprogress', 'done'];
   cols.forEach(c => { document.getElementById(`col-${c}`).innerHTML = ''; document.getElementById(`count-${c}`).innerText = '0'; });
   
-  appData.tasks.filter(t => t.Status && t.Status !== 'discarded').sort((a,b) => b.Important - a.Important).forEach(task => {
+  appData.tasks.filter(t => t.Status && t.Status !== 'discarded').sort((a,b) => b.Important - a.Important).forEach((task, idx) => {
     const card = document.createElement('div');
     card.className = `card ${task.Important ? 'important' : ''}`;
     card.draggable = true; card.dataset.id = task.TaskID;
-    card.innerHTML = `<div class="card-title">${task.Title}</div>
-      <div class="card-meta"><span class="cat-pill">${task.Category}</span>${task.DueDate ? `<span>Due: ${new Date(task.DueDate).toLocaleDateString()}</span>` : ''}</div>`;
+    
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+        <div class="card-title">${task.Title}</div>
+        <div style="background:var(--color-background-secondary); border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:10px;">${task.Important ? '!' : '-'}</div>
+      </div>
+      <div class="card-meta">
+        <span class="cat-pill">${task.Category}</span>
+        ${formatRelativeDate(task.DueDate)}
+        <span class="stack-badge">#${idx+1}</span>
+      </div>`;
+      
+    // Drag & Drop
     card.ondragstart = () => { dragId = task.TaskID; setTimeout(()=>card.style.opacity='0.5',0); };
     card.ondragend = () => card.style.opacity='1';
+    
+    // Long Press & Context Menu
+    card.oncontextmenu = (e) => { e.preventDefault(); openCtxMenu(e, task.TaskID); };
+    card.ontouchstart = (e) => { longPressTimer = setTimeout(() => openCtxMenu(e, task.TaskID), 500); };
+    card.ontouchend = () => clearTimeout(longPressTimer);
+    card.ontouchmove = () => clearTimeout(longPressTimer);
     
     if(document.getElementById(`col-${task.Status}`)) {
       document.getElementById(`col-${task.Status}`).appendChild(card);
     }
   });
   cols.forEach(c => document.getElementById(`count-${c}`).innerText = document.getElementById(`col-${c}`).children.length);
+}
+
+// Context Menu Logic
+function openCtxMenu(e, taskId) {
+  currentCtxTaskId = taskId;
+  const menu = document.getElementById('contextMenu');
+  const task = appData.tasks.find(t => t.TaskID == taskId);
+  document.getElementById('ctx-toggle-important').innerText = task.Important ? "Unmark Important" : "Mark Important";
+
+  let x = e.clientX || (e.touches && e.touches[0].clientX);
+  let y = e.clientY || (e.touches && e.touches[0].clientY);
+  
+  menu.style.display = 'block';
+  if (x + 180 > window.innerWidth) x -= 180;
+  if (y + 250 > window.innerHeight) y -= 250;
+  
+  menu.style.left = `${x}px`;
+  menu.style.top = `${y}px`;
+}
+
+document.addEventListener('click', (e) => {
+  if(!e.target.closest('#contextMenu') && !e.target.closest('.card')) {
+    document.getElementById('contextMenu').style.display = 'none';
+  }
+});
+
+function ctxAction(action) {
+  document.getElementById('contextMenu').style.display = 'none';
+  if (!currentCtxTaskId) return;
+  const task = appData.tasks.find(t => t.TaskID == currentCtxTaskId);
+  
+  if (action === 'toggle-important') {
+    task.Important = !task.Important;
+    renderAll();
+    apiCall('toggleImportant', { taskId: currentCtxTaskId, important: task.Important });
+  } else if (action === 'discard') {
+    document.getElementById('modal-discard').classList.add('show');
+  } else {
+    task.Status = action;
+    renderAll();
+    apiCall('updateTaskStatus', { taskId: currentCtxTaskId, status: action });
+  }
+}
+
+function confirmDiscard() {
+  if (!currentCtxTaskId) return;
+  const task = appData.tasks.find(t => t.TaskID == currentCtxTaskId);
+  task.Status = 'discarded';
+  renderAll();
+  apiCall('updateTaskStatus', { taskId: currentCtxTaskId, status: 'discarded' });
+  closeModals();
 }
 
 function onDragOver(e) { e.preventDefault(); }
@@ -379,17 +497,16 @@ function onDrop(e, status) {
   dragId = null;
 }
 
-// Daily Focus (Shows 'todo' only as requested, energy removed)
+// Daily Focus
 function renderFocus() {
   const list = document.getElementById('focus-task-list'); list.innerHTML = '';
-  // Fix 2: Focus shows 'todo' status instead of inprogress
   const focusTasks = appData.tasks.filter(t => t.Status === 'todo');
   
   if(focusTasks.length === 0) list.innerHTML = `<p style="color:var(--color-text-tertiary);font-size:12px;">No To-Do tasks available.</p>`;
   
   focusTasks.forEach(t => {
     list.innerHTML += `<div class="focus-task">
-      <div class="f-check" onclick="markDone(${t.TaskID})"></div>
+      <div class="f-check" onclick="markDone('${t.TaskID}')"></div>
       <div><div class="focus-title">${t.Title}</div><span class="cat-pill" style="font-size:10px">${t.Category}</span></div>
     </div>`;
   });
@@ -400,24 +517,32 @@ function markDone(id) {
   if(t) { t.Status = 'inprogress'; renderAll(); apiCall('updateTaskStatus', {taskId: id, status: 'inprogress'}); }
 }
 
-// Habits
+// Habits (Fixed Monday-Sunday Week)
 function renderHabits() {
   const list = document.getElementById('habits-list'); list.innerHTML = '';
-  const days = ['S','M','T','W','T','F','S'];
+  const daysHeader = ['M','T','W','T','F','S','S'];
+  
+  // Calculate this week's Monday
+  const currDate = new Date();
+  currDate.setHours(0,0,0,0);
+  const dayOfWeek = currDate.getDay() || 7; 
+  const monday = new Date(currDate);
+  monday.setDate(currDate.getDate() - dayOfWeek + 1);
   
   appData.habitsMaster.filter(h => h.Active === true || h.Active === 'TRUE').forEach(h => {
     const card = document.createElement('div'); card.className = 'habit-card';
     let rowHtml = `<div class="week-row">`;
     
-    // Generate 7 days ending today
-    for(let i=6; i>=0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i);
+    for(let i=0; i<7; i++) {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
       const dStr = d.toISOString().split('T')[0];
+      const isFuture = d > currDate;
       const done = appData.habitsLog.some(l => l.HabitID == h.HabitID && l.Date.startsWith(dStr) && (l.Completed === true || l.Completed === 'TRUE'));
       
       rowHtml += `<div class="day-col">
-        <span style="font-size:10px; color:var(--color-text-tertiary)">${days[d.getDay()]}</span>
-        <div class="day-dot ${done?'done':''}" onclick="toggleHabit('${h.HabitID}', '${dStr}', ${!done})">${done?'✓':''}</div>
+        <span style="font-size:10px; color:var(--color-text-tertiary)">${daysHeader[i]}</span>
+        <div class="day-dot ${done?'done':''} ${isFuture?'future':''}" ${isFuture ? '' : `onclick="toggleHabit('${h.HabitID}', '${dStr}', ${!done})"`}>${done?'✓':''}</div>
       </div>`;
     }
     
@@ -477,8 +602,6 @@ function closeModals() { document.querySelectorAll('.overlay').forEach(m => m.cl
 function submitNewTask() {
   const title = document.getElementById('taskTitle').value;
   if (!title) return;
-  
-  // Fix 1: Default status is 'topick'
   const task = { title, category: document.getElementById('taskCategory').value, goalId: document.getElementById('taskGoal').value, dueDate: document.getElementById('taskDue').value, important: document.getElementById('taskImportant').checked, status: 'topick' };
   
   closeModals();
@@ -487,26 +610,32 @@ function submitNewTask() {
   apiCall('addTask', task).then(res => { if(res.success) fetchDynamicData(); });
 }
 
-function submitNewHabit() {
+async function submitNewHabit() {
   const name = document.getElementById('habitName').value;
   if(!name) return;
   const habit = { name, icon: document.getElementById('habitIcon').value, category: document.getElementById('habitCategory').value };
   closeModals();
-  // Note: Requires backend 'addHabit' endpoint to persist.
+  
   appData.habitsMaster.push({ HabitID: 'temp_'+Date.now(), Name: habit.name, Icon: habit.icon, Category: habit.category, Active: true, Frequency: 'Daily' });
   renderHabits();
-  apiCall('addHabit', habit); 
+  
+  // Force sync immediately to retrieve the real ID from sheets
+  const response = await apiCall('addHabit', habit); 
+  if(response.success) { forceSync(); }
 }
 
-function submitNewGoal() {
+async function submitNewGoal() {
   const label = document.getElementById('goalLabel').value;
   if(!label) return;
   const goal = { label, category: document.getElementById('goalCategory').value };
   closeModals();
-  // Note: Requires backend 'addGoal' endpoint to persist.
+  
   appData.goals.push({ GoalID: 'temp_'+Date.now(), Label: goal.label, Category: goal.category, Status: 'Active' });
   renderGoals();
-  apiCall('addGoal', goal);
+  
+  // Force sync immediately to retrieve the real ID from sheets
+  const response = await apiCall('addGoal', goal);
+  if(response.success) { forceSync(); }
 }
 
 // --- BRAIN DUMP ---
