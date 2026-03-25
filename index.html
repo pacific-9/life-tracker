@@ -59,24 +59,26 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 .drag-over-col{outline:2px dashed var(--color-border-secondary);outline-offset:-4px}
 
 /* --- DAILY FOCUS --- */
-.focus-task{background:var(--color-background-secondary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start;}
-.focus-task.done-task .focus-title{text-decoration:line-through;opacity:0.6}
-.f-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--color-border-secondary);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent; transition: all 0.2s;}
-.f-check.done{background:#1D9E75;border-color:#1D9E75;color:#fff}
+.focus-task{background:var(--color-background-secondary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start; cursor:pointer;}
+.focus-task:hover{border-color:var(--color-border-secondary);}
+.f-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--color-border-secondary);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent; transition: all 0.2s;}
+.f-check.inprogress{border-color:#378ADD; border-width: 3px;}
 .focus-title{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px}
 .brain-dump{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:16px;margin-top:24px}
 .brain-input{width:100%;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);color:var(--color-text-primary);padding:10px;border-radius:var(--border-radius-md);margin-bottom:10px; outline:none;}
 .brain-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--color-border-tertiary);font-size:13px;color:var(--color-text-secondary)}
 
 /* --- HABITS & GOALS --- */
-.habit-card{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:12px;}
+.habit-card{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:12px; user-select: none;}
 .week-row{display:flex;align-items:center;gap:10px;margin-top:12px;}
 .day-col{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1}
 .day-dot{width:28px;height:28px;border-radius:50%;border:1px solid var(--color-border-secondary);display:flex;align-items:center;justify-content:center;font-size:12px;cursor:pointer;transition:all 0.2s;}
 .day-dot.done{background:#1D9E75;border-color:#1D9E75;color:#fff}
 .day-dot.future{opacity:0.2; cursor:default;}
+.streak-badge{background:var(--color-background-primary); padding:4px 8px; border-radius:12px; font-size:11px; font-weight:500; color:#E9A23B;}
+
 .goals-layout{display:grid;grid-template-columns:250px 1fr;gap:20px;}
-.goal-nav-item{padding:10px;border-radius:var(--border-radius-md);cursor:pointer;margin-bottom:5px;font-weight:500;}
+.goal-nav-item{padding:10px;border-radius:var(--border-radius-md);cursor:pointer;margin-bottom:5px;font-weight:500; user-select: none; display:flex; justify-content:space-between;}
 .goal-nav-item:hover, .goal-nav-item.active{background:var(--color-background-secondary);}
 .sub-goal{background:var(--color-background-secondary);padding:16px;border-radius:var(--border-radius-lg);margin-bottom:15px;}
 .task-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-border-tertiary);}
@@ -105,8 +107,6 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
   .board { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 15px; }
   .col { min-width: 85vw; scroll-snap-align: center; }
   .goals-layout { grid-template-columns: 1fr; }
-  .stat-grid { grid-template-columns: 1fr; }
-  .week-row { gap: 5px; }
 }
 </style>
 </head>
@@ -154,7 +154,7 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 
   <div id="focus" class="view">
     <h2 style="margin-bottom: 5px;">Today's Focus</h2>
-    <p style="color:var(--color-text-tertiary); margin-bottom: 20px;">Tasks pulled from your 'To Do' column.</p>
+    <p style="color:var(--color-text-tertiary); margin-bottom: 20px;">Click a task to cycle: To Do → In Progress → Done</p>
     <div id="focus-task-list"></div>
     <div class="brain-dump">
       <h3 style="font-size:13px; margin-bottom:10px; color:var(--color-text-secondary); text-transform:uppercase;">Brain Dump</h3>
@@ -201,7 +201,8 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
     <input type="text" id="taskTitle" class="input-base" placeholder="Task title">
     <select id="taskCategory" class="input-base"></select>
     <select id="taskGoal" class="input-base"><option value="">No Goal Link</option></select>
-    <input type="date" id="taskDue" class="input-base">
+    <input type="date" id="taskDue" class="input-base" required>
+    <p id="taskError" style="color:#F09595; font-size:11px; display:none; margin-top:-10px; margin-bottom:10px;">Category and Due Date are mandatory.</p>
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
       <input type="checkbox" id="taskImportant"> <label>Mark as Important</label>
     </div>
@@ -237,26 +238,33 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
   </div>
 </div>
 
-<div class="overlay" id="modal-discard">
+<div class="overlay" id="modal-confirm">
   <div class="modal">
-    <h3 style="margin-bottom: 10px; color:#F09595;">Discard Task?</h3>
-    <p style="color:var(--color-text-secondary); margin-bottom: 20px;">Are you sure you want to discard this task? It will be removed from your board but kept in your Google Sheet for records.</p>
+    <h3 id="confirmTitle" style="margin-bottom: 10px; color:#F09595;">Confirm Action</h3>
+    <p id="confirmDesc" style="color:var(--color-text-secondary); margin-bottom: 20px;"></p>
     <div style="display:flex; justify-content:flex-end; gap:10px;">
       <button class="btn-primary" style="border:none" onclick="closeModals()">Cancel</button>
-      <button class="btn-primary" style="background:#F09595; color:#1e1e1e; border:none;" onclick="confirmDiscard()">Discard</button>
+      <button class="btn-primary" id="confirmBtn" style="background:#F09595; color:#1e1e1e; border:none;">Confirm</button>
     </div>
   </div>
 </div>
 
-<div class="context-menu" id="contextMenu">
-  <div class="ctx-item" id="ctx-toggle-important" onclick="ctxAction('toggle-important')">Mark Important</div>
+<div class="context-menu" id="ctxMenuTask">
+  <div class="ctx-item" id="ctx-toggle-important" onclick="ctxTaskAction('toggle-important')">Mark Important</div>
   <div class="ctx-sep"></div>
-  <div class="ctx-item" onclick="ctxAction('topick')"><div class="dot" style="background:#888780"></div>Move to pick</div>
-  <div class="ctx-item" onclick="ctxAction('todo')"><div class="dot" style="background:#378ADD"></div>To do</div>
-  <div class="ctx-item" onclick="ctxAction('inprogress')"><div class="dot" style="background:#1D9E75"></div>In progress</div>
-  <div class="ctx-item" onclick="ctxAction('done')"><div class="dot" style="background:#1D9E75"></div>Done</div>
+  <div class="ctx-item" onclick="ctxTaskAction('topick')"><div class="dot" style="background:#888780"></div>Move to pick</div>
+  <div class="ctx-item" onclick="ctxTaskAction('todo')"><div class="dot" style="background:#378ADD"></div>To do</div>
+  <div class="ctx-item" onclick="ctxTaskAction('inprogress')"><div class="dot" style="background:#1D9E75"></div>In progress</div>
+  <div class="ctx-item" onclick="ctxTaskAction('done')"><div class="dot" style="background:#1D9E75"></div>Done</div>
   <div class="ctx-sep"></div>
-  <div class="ctx-item" style="color:#F09595" onclick="ctxAction('discard')">Discard task</div>
+  <div class="ctx-item" style="color:#F09595" onclick="ctxTaskAction('discard')">Discard task</div>
+</div>
+
+<div class="context-menu" id="ctxMenuGoal">
+  <div class="ctx-item" onclick="ctxGoalAction('Active')"><div class="dot" style="background:#1D9E75"></div>Active</div>
+  <div class="ctx-item" onclick="ctxGoalAction('Inactive')"><div class="dot" style="background:#888780"></div>Inactive</div>
+  <div class="ctx-item" onclick="ctxGoalAction('Completed')"><div class="dot" style="background:#378ADD"></div>Completed</div>
+  <div class="ctx-item" onclick="ctxGoalAction('Archive')"><div class="dot" style="background:#495057"></div>Archive</div>
 </div>
 
 <script>
@@ -265,7 +273,8 @@ let scriptUrl = localStorage.getItem('life_script_url') || "";
 let currentTheme = localStorage.getItem('life_theme') || 'purple';
 let appData = { tasks: [], habitsLog: [], habitsMaster: [], goals: [], categories: [] };
 let brainDump = JSON.parse(localStorage.getItem('life_brain_dump')) || [];
-let dragId = null, currentCtxTaskId = null, longPressTimer = null;
+
+let dragId = null, currentCtxId = null, longPressTimer = null;
 let activeGoalId = null;
 
 const themes = [
@@ -276,6 +285,12 @@ const themes = [
   {id:'blue', name:'Blue', bg:'#042C53', border:'#378ADD', cls:'theme-blue'},
   {id:'slate', name:'Slate', bg:'#2C2C2A', border:'#888780', cls:'theme-slate'}
 ];
+
+// --- TIMEZONE FIX ---
+function getLocalISODate(d = new Date()) {
+  const offset = d.getTimezoneOffset() * 60000;
+  return new Date(d.getTime() - offset).toISOString().split('T')[0];
+}
 
 // --- INITIALIZATION ---
 window.onload = async () => {
@@ -374,6 +389,19 @@ function formatRelativeDate(dateStr) {
   return `<span class="due-text">${d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>`;
 }
 
+function calculateStreak(habitId) {
+  let streak = 0;
+  const today = new Date(); today.setHours(0,0,0,0);
+  for (let i = 0; i < 365; i++) {
+     const d = new Date(today); d.setDate(d.getDate() - i);
+     const dStr = getLocalISODate(d);
+     const log = appData.habitsLog.find(l => l.HabitID == habitId && l.Date.startsWith(dStr) && (l.Completed === true || l.Completed === 'TRUE'));
+     if (log) { streak++; } 
+     else { if (i === 0) continue; break; } // It's okay if today isn't checked yet
+  }
+  return streak;
+}
+
 // --- RENDERING ---
 function renderAll() {
   renderKanban(); renderFocus(); renderHabits(); renderGoals();
@@ -389,15 +417,15 @@ function sw(id, el) {
 
 function populateDropdowns() {
   const cats = appData.categories.map(c => `<option value="${c}">${c}</option>`).join('');
-  document.getElementById('taskCategory').innerHTML = cats;
-  document.getElementById('habitCategory').innerHTML = cats;
-  document.getElementById('goalCategory').innerHTML = cats;
+  document.getElementById('taskCategory').innerHTML = `<option value="">Select Category</option>` + cats;
+  document.getElementById('habitCategory').innerHTML = `<option value="">Select Category</option>` + cats;
+  document.getElementById('goalCategory').innerHTML = `<option value="">Select Category</option>` + cats;
 
   const goals = `<option value="">No Goal Link</option>` + appData.goals.map(g => `<option value="${g.GoalID}">${g.Label}</option>`).join('');
   document.getElementById('taskGoal').innerHTML = goals;
 }
 
-// Kanban
+// --- KANBAN ---
 function renderKanban() {
   const cols = ['topick', 'todo', 'inprogress', 'done'];
   cols.forEach(c => { document.getElementById(`col-${c}`).innerHTML = ''; document.getElementById(`count-${c}`).innerText = '0'; });
@@ -418,13 +446,12 @@ function renderKanban() {
         <span class="stack-badge">#${idx+1}</span>
       </div>`;
       
-    // Drag & Drop
     card.ondragstart = () => { dragId = task.TaskID; setTimeout(()=>card.style.opacity='0.5',0); };
     card.ondragend = () => card.style.opacity='1';
     
-    // Long Press & Context Menu
-    card.oncontextmenu = (e) => { e.preventDefault(); openCtxMenu(e, task.TaskID); };
-    card.ontouchstart = (e) => { longPressTimer = setTimeout(() => openCtxMenu(e, task.TaskID), 500); };
+    // Task Context Menu
+    card.oncontextmenu = (e) => { e.preventDefault(); openMenu(e, 'ctxMenuTask', task.TaskID); };
+    card.ontouchstart = (e) => { longPressTimer = setTimeout(() => openMenu(e, 'ctxMenuTask', task.TaskID), 500); };
     card.ontouchend = () => clearTimeout(longPressTimer);
     card.ontouchmove = () => clearTimeout(longPressTimer);
     
@@ -435,12 +462,15 @@ function renderKanban() {
   cols.forEach(c => document.getElementById(`count-${c}`).innerText = document.getElementById(`col-${c}`).children.length);
 }
 
-// Context Menu Logic
-function openCtxMenu(e, taskId) {
-  currentCtxTaskId = taskId;
-  const menu = document.getElementById('contextMenu');
-  const task = appData.tasks.find(t => t.TaskID == taskId);
-  document.getElementById('ctx-toggle-important').innerText = task.Important ? "Unmark Important" : "Mark Important";
+// --- CONTEXT MENUS ---
+function openMenu(e, menuId, targetId) {
+  currentCtxId = targetId;
+  const menu = document.getElementById(menuId);
+  
+  if(menuId === 'ctxMenuTask') {
+    const task = appData.tasks.find(t => t.TaskID == targetId);
+    document.getElementById('ctx-toggle-important').innerText = task.Important ? "Unmark Important" : "Mark Important";
+  }
 
   let x = e.clientX || (e.touches && e.touches[0].clientX);
   let y = e.clientY || (e.touches && e.touches[0].clientY);
@@ -454,36 +484,36 @@ function openCtxMenu(e, taskId) {
 }
 
 document.addEventListener('click', (e) => {
-  if(!e.target.closest('#contextMenu') && !e.target.closest('.card')) {
-    document.getElementById('contextMenu').style.display = 'none';
+  if(!e.target.closest('.context-menu') && !e.target.closest('.card') && !e.target.closest('.habit-card') && !e.target.closest('.goal-nav-item')) {
+    document.querySelectorAll('.context-menu').forEach(m => m.style.display = 'none');
   }
 });
 
-function ctxAction(action) {
-  document.getElementById('contextMenu').style.display = 'none';
-  if (!currentCtxTaskId) return;
-  const task = appData.tasks.find(t => t.TaskID == currentCtxTaskId);
+function ctxTaskAction(action) {
+  document.getElementById('ctxMenuTask').style.display = 'none';
+  if (!currentCtxId) return;
+  const task = appData.tasks.find(t => t.TaskID == currentCtxId);
   
   if (action === 'toggle-important') {
     task.Important = !task.Important;
     renderAll();
-    apiCall('toggleImportant', { taskId: currentCtxTaskId, important: task.Important });
+    apiCall('toggleImportant', { taskId: currentCtxId, important: task.Important });
   } else if (action === 'discard') {
-    document.getElementById('modal-discard').classList.add('show');
+    openConfirm("Discard Task?", "It will be removed from your board but kept in your sheet.", () => {
+      task.Status = 'discarded'; renderAll(); apiCall('updateTaskStatus', { taskId: currentCtxId, status: 'discarded' });
+    });
   } else {
-    task.Status = action;
-    renderAll();
-    apiCall('updateTaskStatus', { taskId: currentCtxTaskId, status: action });
+    task.Status = action; renderAll(); apiCall('updateTaskStatus', { taskId: currentCtxId, status: action });
   }
 }
 
-function confirmDiscard() {
-  if (!currentCtxTaskId) return;
-  const task = appData.tasks.find(t => t.TaskID == currentCtxTaskId);
-  task.Status = 'discarded';
+function ctxGoalAction(status) {
+  document.getElementById('ctxMenuGoal').style.display = 'none';
+  if (!currentCtxId) return;
+  const goal = appData.goals.find(g => g.GoalID == currentCtxId);
+  goal.Status = status;
   renderAll();
-  apiCall('updateTaskStatus', { taskId: currentCtxTaskId, status: 'discarded' });
-  closeModals();
+  apiCall('updateGoalStatus', { goalId: currentCtxId, status: status });
 }
 
 function onDragOver(e) { e.preventDefault(); }
@@ -497,46 +527,63 @@ function onDrop(e, status) {
   dragId = null;
 }
 
-// Daily Focus
+// --- DAILY FOCUS ---
 function renderFocus() {
   const list = document.getElementById('focus-task-list'); list.innerHTML = '';
-  const focusTasks = appData.tasks.filter(t => t.Status === 'todo');
   
-  if(focusTasks.length === 0) list.innerHTML = `<p style="color:var(--color-text-tertiary);font-size:12px;">No To-Do tasks available.</p>`;
+  // Combine In Progress and To Do, sort so In Progress is first
+  const focusTasks = appData.tasks.filter(t => t.Status === 'todo' || t.Status === 'inprogress')
+                                  .sort((a,b) => (a.Status === 'inprogress' ? -1 : 1));
+  
+  if(focusTasks.length === 0) list.innerHTML = `<p style="color:var(--color-text-tertiary);font-size:12px;">No active tasks available.</p>`;
   
   focusTasks.forEach(t => {
-    list.innerHTML += `<div class="focus-task">
-      <div class="f-check" onclick="markDone('${t.TaskID}')"></div>
-      <div><div class="focus-title">${t.Title}</div><span class="cat-pill" style="font-size:10px">${t.Category}</span></div>
+    const isProg = t.Status === 'inprogress';
+    list.innerHTML += `<div class="focus-task" onclick="cycleFocusTask('${t.TaskID}', '${t.Status}')">
+      <div class="f-check ${isProg ? 'inprogress' : ''}"></div>
+      <div>
+        <div class="focus-title">${t.Title}</div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <span class="cat-pill" style="font-size:10px">${t.Category}</span>
+          <span style="font-size:10px; color:var(--color-text-tertiary)">${isProg ? 'In Progress' : 'To Do'}</span>
+        </div>
+      </div>
     </div>`;
   });
 }
 
-function markDone(id) {
+function cycleFocusTask(id, currentStatus) {
   const t = appData.tasks.find(x => x.TaskID == id);
-  if(t) { t.Status = 'inprogress'; renderAll(); apiCall('updateTaskStatus', {taskId: id, status: 'inprogress'}); }
+  if(t) { 
+    t.Status = (currentStatus === 'todo') ? 'inprogress' : 'done';
+    renderAll(); 
+    apiCall('updateTaskStatus', {taskId: id, status: t.Status}); 
+  }
 }
 
-// Habits (Fixed Monday-Sunday Week)
+// --- HABITS ---
 function renderHabits() {
   const list = document.getElementById('habits-list'); list.innerHTML = '';
   const daysHeader = ['M','T','W','T','F','S','S'];
   
-  // Calculate this week's Monday
-  const currDate = new Date();
-  currDate.setHours(0,0,0,0);
+  const currDate = new Date(); currDate.setHours(0,0,0,0);
   const dayOfWeek = currDate.getDay() || 7; 
-  const monday = new Date(currDate);
-  monday.setDate(currDate.getDate() - dayOfWeek + 1);
+  const monday = new Date(currDate); monday.setDate(currDate.getDate() - dayOfWeek + 1);
   
   appData.habitsMaster.filter(h => h.Active === true || h.Active === 'TRUE').forEach(h => {
+    const streak = calculateStreak(h.HabitID);
     const card = document.createElement('div'); card.className = 'habit-card';
-    let rowHtml = `<div class="week-row">`;
     
+    // Long Press Context
+    card.oncontextmenu = (e) => { e.preventDefault(); promptDisableHabit(h.HabitID, h.Name); };
+    card.ontouchstart = (e) => { longPressTimer = setTimeout(() => promptDisableHabit(h.HabitID, h.Name), 500); };
+    card.ontouchend = () => clearTimeout(longPressTimer);
+    card.ontouchmove = () => clearTimeout(longPressTimer);
+
+    let rowHtml = `<div class="week-row">`;
     for(let i=0; i<7; i++) {
-      const d = new Date(monday);
-      d.setDate(monday.getDate() + i);
-      const dStr = d.toISOString().split('T')[0];
+      const d = new Date(monday); d.setDate(monday.getDate() + i);
+      const dStr = getLocalISODate(d);
       const isFuture = d > currDate;
       const done = appData.habitsLog.some(l => l.HabitID == h.HabitID && l.Date.startsWith(dStr) && (l.Completed === true || l.Completed === 'TRUE'));
       
@@ -546,19 +593,30 @@ function renderHabits() {
       </div>`;
     }
     
-    card.innerHTML = `<div style="font-weight:500; font-size:14px;">${h.Icon||''} ${h.Name}</div>${rowHtml}</div>`;
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-weight:500; font-size:14px;">${h.Icon||''} ${h.Name}</div>
+        ${streak > 0 ? `<div class="streak-badge">🔥 ${streak}</div>` : ''}
+      </div>
+      ${rowHtml}</div>`;
     list.appendChild(card);
+  });
+}
+
+function promptDisableHabit(id, name) {
+  openConfirm("Disable Habit?", `Are you sure you want to disable "${name}"? It will be hidden from your tracker.`, () => {
+    const habit = appData.habitsMaster.find(h => h.HabitID == id);
+    habit.Active = false; renderHabits(); apiCall('disableHabit', { habitId: id }); closeModals();
   });
 }
 
 function toggleHabit(id, date, completed) {
   let log = appData.habitsLog.find(l => l.HabitID == id && l.Date.startsWith(date));
   if(log) log.Completed = completed; else appData.habitsLog.push({HabitID: id, Date: date, Completed: completed});
-  renderHabits();
-  apiCall('logHabit', {habitId: id, date, completed});
+  renderHabits(); apiCall('logHabit', {habitId: id, date, completed});
 }
 
-// Goals
+// --- GOALS ---
 function renderGoals() {
   const side = document.getElementById('goals-sidebar'); side.innerHTML = '';
   const main = document.getElementById('goals-main'); main.innerHTML = '';
@@ -568,14 +626,30 @@ function renderGoals() {
   appData.goals.forEach(g => {
     const item = document.createElement('div');
     item.className = `goal-nav-item ${activeGoalId == g.GoalID ? 'active' : ''}`;
-    item.innerText = g.Label;
+    
+    let color = '#1D9E75'; // Active
+    if(g.Status === 'Inactive') color = '#888780';
+    if(g.Status === 'Archive') color = '#495057';
+    if(g.Status === 'Completed') color = '#378ADD';
+
+    item.innerHTML = `<span>${g.Label}</span><div class="dot" style="background:${color}; margin-top:4px;"></div>`;
     item.onclick = () => { activeGoalId = g.GoalID; renderGoals(); };
+    
+    // Context Menu for Goal Status
+    item.oncontextmenu = (e) => { e.preventDefault(); openMenu(e, 'ctxMenuGoal', g.GoalID); };
+    item.ontouchstart = (e) => { longPressTimer = setTimeout(() => openMenu(e, 'ctxMenuGoal', g.GoalID), 500); };
+    item.ontouchend = () => clearTimeout(longPressTimer);
+    item.ontouchmove = () => clearTimeout(longPressTimer);
+    
     side.appendChild(item);
   });
 
   const active = appData.goals.find(g => g.GoalID == activeGoalId);
   if(active) {
-    main.innerHTML = `<h3 style="margin-bottom:15px">${active.Label} Tasks</h3>`;
+    main.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:15px;">
+        <h3>${active.Label} Tasks</h3>
+        <span style="font-size:11px; color:var(--color-text-tertiary)">Status: ${active.Status}</span>
+      </div>`;
     const tasks = appData.tasks.filter(t => t.GoalID == active.GoalID && t.Status !== 'discarded');
     if(tasks.length === 0) main.innerHTML += `<p style="font-size:12px; color:var(--color-text-tertiary)">No tasks linked to this goal yet.</p>`;
     
@@ -586,23 +660,41 @@ function renderGoals() {
         <span class="cat-pill" style="margin-left:auto; font-size:10px">${t.Status}</span>
       </div>`;
     });
-    main.innerHTML += `<div style="margin-top:15px; color:var(--color-text-tertiary); font-size:12px; cursor:pointer;" onclick="openAddTaskForGoal('${active.GoalID}')">+ Add task to this goal</div>`;
+    main.innerHTML += `<div style="margin-top:15px; color:var(--color-text-tertiary); font-size:12px; cursor:pointer;" onclick="openAddTaskForGoal('${active.GoalID}', '${active.Category}')">+ Add task to this goal</div>`;
   }
 }
 
-function openAddTaskForGoal(goalId) {
+function openAddTaskForGoal(goalId, category) {
   openModal('modal-add-task');
-  setTimeout(() => document.getElementById('taskGoal').value = goalId, 100);
+  setTimeout(() => {
+    document.getElementById('taskGoal').value = goalId;
+    document.getElementById('taskCategory').value = category;
+  }, 50);
 }
 
 // --- FORMS & MODALS ---
 function openModal(id) { document.getElementById(id).classList.add('show'); }
 function closeModals() { document.querySelectorAll('.overlay').forEach(m => m.classList.remove('show')); }
 
+function openConfirm(title, desc, callback) {
+  document.getElementById('confirmTitle').innerText = title;
+  document.getElementById('confirmDesc').innerText = desc;
+  document.getElementById('confirmBtn').onclick = callback;
+  openModal('modal-confirm');
+}
+
 function submitNewTask() {
   const title = document.getElementById('taskTitle').value;
-  if (!title) return;
-  const task = { title, category: document.getElementById('taskCategory').value, goalId: document.getElementById('taskGoal').value, dueDate: document.getElementById('taskDue').value, important: document.getElementById('taskImportant').checked, status: 'topick' };
+  const category = document.getElementById('taskCategory').value;
+  const dueDate = document.getElementById('taskDue').value;
+  
+  if (!title || !category || !dueDate) {
+    document.getElementById('taskError').style.display = 'block';
+    return;
+  }
+  document.getElementById('taskError').style.display = 'none';
+
+  const task = { title, category, goalId: document.getElementById('taskGoal').value, dueDate, important: document.getElementById('taskImportant').checked, status: 'topick' };
   
   closeModals();
   appData.tasks.push({...task, TaskID: 'temp_'+Date.now(), Important: task.important, Status: 'topick'});
@@ -612,28 +704,28 @@ function submitNewTask() {
 
 async function submitNewHabit() {
   const name = document.getElementById('habitName').value;
-  if(!name) return;
-  const habit = { name, icon: document.getElementById('habitIcon').value, category: document.getElementById('habitCategory').value };
-  closeModals();
+  const category = document.getElementById('habitCategory').value;
+  if(!name || !category) return alert("Name and Category required.");
   
+  const habit = { name, icon: document.getElementById('habitIcon').value, category };
+  closeModals();
   appData.habitsMaster.push({ HabitID: 'temp_'+Date.now(), Name: habit.name, Icon: habit.icon, Category: habit.category, Active: true, Frequency: 'Daily' });
   renderHabits();
   
-  // Force sync immediately to retrieve the real ID from sheets
   const response = await apiCall('addHabit', habit); 
   if(response.success) { forceSync(); }
 }
 
 async function submitNewGoal() {
   const label = document.getElementById('goalLabel').value;
-  if(!label) return;
-  const goal = { label, category: document.getElementById('goalCategory').value };
-  closeModals();
+  const category = document.getElementById('goalCategory').value;
+  if(!label || !category) return alert("Name and Category required.");
   
+  const goal = { label, category };
+  closeModals();
   appData.goals.push({ GoalID: 'temp_'+Date.now(), Label: goal.label, Category: goal.category, Status: 'Active' });
   renderGoals();
   
-  // Force sync immediately to retrieve the real ID from sheets
   const response = await apiCall('addGoal', goal);
   if(response.success) { forceSync(); }
 }
