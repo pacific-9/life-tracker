@@ -53,17 +53,26 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 .cat-pill{padding:3px 8px;border-radius:12px;background:var(--color-background-secondary);color:var(--color-text-primary); font-weight:500;}
 .card.important .cat-pill{background:rgba(255,255,255,0.15); color:var(--imp-text);}
 .due-text{color:var(--color-text-tertiary);}
-.stack-badge{margin-left:auto; background:var(--color-background-secondary); padding:2px 6px; border-radius:12px; font-size:10px; color:var(--color-text-tertiary);}
-.card.important .stack-badge{background:rgba(0,0,0,0.2); color:var(--imp-sub);}
 .col-drop-zone{min-height:50px}
 .drag-over-col{outline:2px dashed var(--color-border-secondary);outline-offset:-4px}
 
 /* --- DAILY FOCUS --- */
 .focus-task{background:var(--color-background-secondary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px;margin-bottom:10px;display:flex;gap:12px;align-items:flex-start; cursor:pointer;}
 .focus-task:hover{border-color:var(--color-border-secondary);}
+.focus-task.important { background: var(--imp-bg); border-color: var(--imp-bg); border-left: 3px solid var(--imp-border); color: var(--imp-text); }
+.focus-task.important .focus-title { color: var(--imp-text); }
+.focus-task.important .cat-pill { background: rgba(255,255,255,0.15); color: var(--imp-text); }
+
 .f-check{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--color-border-secondary);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:transparent; transition: all 0.2s;}
-.f-check.inprogress{border-color:#378ADD; border-width: 3px;}
+.f-check.inprogress{border-color:#EF9F27; border-width: 3px;}
+.focus-task.important .f-check { border-color: rgba(255,255,255,0.5); }
+.focus-task.important .f-check.inprogress { border-color: #EF9F27; }
+
 .focus-title{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-bottom:6px}
+.status-pill{font-size:10px;padding:2px 8px;border-radius:12px;font-weight:500;}
+.status-todo{background:var(--color-background-primary);color:var(--color-text-secondary);border:0.5px solid var(--color-border-tertiary);}
+.status-inprogress{background:#EF9F27;color:#1e1e1e;}
+
 .brain-dump{background:var(--color-background-secondary);border-radius:var(--border-radius-lg);padding:16px;margin-top:24px}
 .brain-input{width:100%;background:var(--color-background-primary);border:1px solid var(--color-border-tertiary);color:var(--color-text-primary);padding:10px;border-radius:var(--border-radius-md);margin-bottom:10px; outline:none;}
 .brain-item{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--color-border-tertiary);font-size:13px;color:var(--color-text-secondary)}
@@ -83,17 +92,21 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 .sub-goal{background:var(--color-background-secondary);padding:16px;border-radius:var(--border-radius-lg);margin-bottom:15px;}
 .task-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-border-tertiary);}
 
-/* --- MODALS & MENUS --- */
+/* --- MODALS & SETTINGS --- */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:1000;display:none;align-items:center;justify-content:center; padding:20px;}
 .overlay.show{display:flex}
 .modal{background:var(--color-background-secondary);padding:24px;border-radius:var(--border-radius-lg);width:100%;max-width:400px; border: 1px solid var(--color-border-tertiary);}
 .input-base{width:100%;padding:10px;border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);margin-bottom:15px;}
-.settings-panel{position:fixed;top:0;right:0;height:100%;width:300px;background:var(--color-background-secondary);border-left:1px solid var(--color-border-tertiary);z-index:900;transform:translateX(100%);transition:transform 0.3s ease;padding:20px; overflow-y:auto;}
+.settings-panel{position:fixed;top:0;right:0;height:100%;width:320px;background:var(--color-background-secondary);border-left:1px solid var(--color-border-tertiary);z-index:900;transform:translateX(100%);transition:transform 0.3s ease;padding:20px; overflow-y:auto;}
 .settings-panel.open{transform:translateX(0)}
 .theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
 .theme-option{border-radius:var(--border-radius-md);padding:10px;cursor:pointer;border:2px solid transparent;text-align:center;background:var(--color-background-primary);}
 .theme-option.selected{border-color:var(--color-text-primary);}
 .theme-preview{width:100%;height:20px;border-radius:4px;margin-bottom:6px;}
+
+.recur-list{display:flex;flex-direction:column;gap:8px;margin-bottom:15px;}
+.recur-item{background:var(--color-background-primary);padding:12px;border-radius:var(--border-radius-md);display:flex;justify-content:space-between;align-items:center;border:1px solid var(--color-border-tertiary);}
+.recur-icon{background:#E6F1FB;color:#042C53;padding:4px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
 
 /* Context Menu */
 .context-menu{position:fixed;background:var(--color-background-secondary);border:1px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:8px;z-index:2000;min-width:180px;display:none;box-shadow:0 10px 20px rgba(0,0,0,0.5);}
@@ -104,8 +117,8 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 
 /* --- MOBILE RESPONSIVENESS --- */
 @media (max-width: 768px) {
-  .board { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 15px; }
-  .col { min-width: 85vw; scroll-snap-align: center; }
+  .board { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 15px; scroll-behavior: smooth; }
+  .col { min-width: 45vw; scroll-snap-align: start; }
   .goals-layout { grid-template-columns: 1fr; }
 }
 </style>
@@ -142,7 +155,7 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
         <div class="col-drop-zone" id="col-todo"></div>
       </div>
       <div class="col" ondragover="onDragOver(event)" ondrop="onDrop(event,'inprogress')">
-        <div class="col-head"><div style="display:flex;align-items:center;gap:6px"><div class="dot" style="background:#1D9E75"></div>In progress</div> <span class="col-count" id="count-inprogress">0</span></div>
+        <div class="col-head"><div style="display:flex;align-items:center;gap:6px"><div class="dot" style="background:#EF9F27"></div>In progress</div> <span class="col-count" id="count-inprogress">0</span></div>
         <div class="col-drop-zone" id="col-inprogress"></div>
       </div>
       <div class="col" ondragover="onDragOver(event)" ondrop="onDrop(event,'done')">
@@ -153,8 +166,7 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
   </div>
 
   <div id="focus" class="view">
-    <h2 style="margin-bottom: 5px;">Today's Focus</h2>
-    <p style="color:var(--color-text-tertiary); margin-bottom: 20px;">Click a task to cycle: To Do → In Progress → Done</p>
+    <h2 style="margin-bottom: 20px;">Today's Focus</h2>
     <div id="focus-task-list"></div>
     <div class="brain-dump">
       <h3 style="font-size:13px; margin-bottom:10px; color:var(--color-text-secondary); text-transform:uppercase;">Brain Dump</h3>
@@ -174,7 +186,10 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
   <div id="goals" class="view">
     <div style="display:flex;justify-content:space-between;margin-bottom:20px">
       <h2 style="font-weight:500;">Goals Overview</h2>
-      <button class="btn-primary" onclick="openModal('modal-add-goal')">+ New goal</button>
+      <div>
+        <button class="btn-primary" style="margin-right:8px;" onclick="toggleHiddenGoals()" id="btn-toggle-goals">Show Inactive</button>
+        <button class="btn-primary" onclick="openModal('modal-add-goal')">+ New goal</button>
+      </div>
     </div>
     <div class="goals-layout">
       <div id="goals-sidebar"></div>
@@ -191,8 +206,13 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
   <p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px;text-transform:uppercase;">Database Connection</p>
   <input type="url" id="scriptUrlInput" class="input-base" placeholder="Paste Apps Script URL here">
   <button class="btn-primary" style="width:100%; margin-bottom:30px;" onclick="saveUrl()">Save URL</button>
+  
   <p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px;text-transform:uppercase;">Important Card Color</p>
   <div class="theme-grid" id="themeGrid"></div>
+  
+  <p style="font-size:11px;color:var(--color-text-tertiary);margin-bottom:10px;text-transform:uppercase;">Active Recurring Tasks</p>
+  <div class="recur-list" id="recurList"></div>
+  <button class="btn-primary" style="width:100%; border: 1px dashed var(--color-border-secondary);" onclick="openModal('modal-add-recur')">+ Add recurring task</button>
 </div>
 
 <div class="overlay" id="modal-add-task">
@@ -238,6 +258,29 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
   </div>
 </div>
 
+<div class="overlay" id="modal-add-recur">
+  <div class="modal">
+    <h3 style="margin-bottom: 15px;">Add Recurring Task</h3>
+    <input type="text" id="recurTitle" class="input-base" placeholder="Task title (e.g. Car wash)">
+    <select id="recurCategory" class="input-base"></select>
+    <select id="recurFreq" class="input-base">
+      <option value="7">Weekly (7 days)</option>
+      <option value="14">Bi-weekly (14 days)</option>
+      <option value="30">Monthly (30 days)</option>
+      <option value="365">Yearly (365 days)</option>
+    </select>
+    <label style="font-size:11px; color:var(--color-text-tertiary);">Next Due Date</label>
+    <input type="date" id="recurDate" class="input-base">
+    <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
+      <input type="checkbox" id="recurImportant"> <label>Mark as Important</label>
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:10px;">
+      <button class="btn-primary" style="border:none" onclick="closeModals()">Cancel</button>
+      <button class="btn-primary" onclick="submitNewRecurring()">Save</button>
+    </div>
+  </div>
+</div>
+
 <div class="overlay" id="modal-confirm">
   <div class="modal">
     <h3 id="confirmTitle" style="margin-bottom: 10px; color:#F09595;">Confirm Action</h3>
@@ -252,10 +295,10 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 <div class="context-menu" id="ctxMenuTask">
   <div class="ctx-item" id="ctx-toggle-important" onclick="ctxTaskAction('toggle-important')">Mark Important</div>
   <div class="ctx-sep"></div>
-  <div class="ctx-item" onclick="ctxTaskAction('topick')"><div class="dot" style="background:#888780"></div>Move to pick</div>
-  <div class="ctx-item" onclick="ctxTaskAction('todo')"><div class="dot" style="background:#378ADD"></div>To do</div>
-  <div class="ctx-item" onclick="ctxTaskAction('inprogress')"><div class="dot" style="background:#1D9E75"></div>In progress</div>
-  <div class="ctx-item" onclick="ctxTaskAction('done')"><div class="dot" style="background:#1D9E75"></div>Done</div>
+  <div class="ctx-item" id="ctx-opt-topick" onclick="ctxTaskAction('topick')"><div class="dot" style="background:#888780"></div>Move to pick</div>
+  <div class="ctx-item" id="ctx-opt-todo" onclick="ctxTaskAction('todo')"><div class="dot" style="background:#378ADD"></div>To do</div>
+  <div class="ctx-item" id="ctx-opt-inprogress" onclick="ctxTaskAction('inprogress')"><div class="dot" style="background:#EF9F27"></div>In progress</div>
+  <div class="ctx-item" id="ctx-opt-done" onclick="ctxTaskAction('done')"><div class="dot" style="background:#1D9E75"></div>Done</div>
   <div class="ctx-sep"></div>
   <div class="ctx-item" style="color:#F09595" onclick="ctxTaskAction('discard')">Discard task</div>
 </div>
@@ -271,11 +314,12 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
 // --- STATE & CONFIG ---
 let scriptUrl = localStorage.getItem('life_script_url') || "";
 let currentTheme = localStorage.getItem('life_theme') || 'purple';
-let appData = { tasks: [], habitsLog: [], habitsMaster: [], goals: [], categories: [] };
+let appData = { tasks: [], habitsLog: [], habitsMaster: [], goals: [], categories: [], recurring: [] };
 let brainDump = JSON.parse(localStorage.getItem('life_brain_dump')) || [];
 
 let dragId = null, currentCtxId = null, longPressTimer = null;
 let activeGoalId = null;
+let showHiddenGoals = false;
 
 const themes = [
   {id:'purple', name:'Purple', bg:'#3C3489', border:'#7F77DD', cls:''},
@@ -286,17 +330,14 @@ const themes = [
   {id:'slate', name:'Slate', bg:'#2C2C2A', border:'#888780', cls:'theme-slate'}
 ];
 
-// --- TIMEZONE FIX ---
 function getLocalISODate(d = new Date()) {
   const offset = d.getTimezoneOffset() * 60000;
   return new Date(d.getTime() - offset).toISOString().split('T')[0];
 }
 
-// --- INITIALIZATION ---
 window.onload = async () => {
   document.getElementById('scriptUrlInput').value = scriptUrl;
   applyTheme(currentTheme);
-  buildThemeGrid();
   renderBrainDump();
   
   if (!scriptUrl) {
@@ -327,7 +368,6 @@ function buildThemeGrid() {
   });
 }
 
-// --- API & SYNC ---
 function saveUrl() {
   scriptUrl = document.getElementById('scriptUrlInput').value.trim();
   localStorage.setItem('life_script_url', scriptUrl);
@@ -353,7 +393,8 @@ async function forceSync() {
     appData.categories = staticData.categories || [];
     appData.goals = staticData.goals || [];
     appData.habitsMaster = staticData.habitsMaster || [];
-    localStorage.setItem('life_static', JSON.stringify({ categories: appData.categories, goals: appData.goals, habitsMaster: appData.habitsMaster }));
+    appData.recurring = staticData.recurring || [];
+    localStorage.setItem('life_static', JSON.stringify({ categories: appData.categories, goals: appData.goals, habitsMaster: appData.habitsMaster, recurring: appData.recurring }));
   }
   await fetchDynamicData();
   document.getElementById('syncStatus').innerText = "Synced";
@@ -372,11 +413,10 @@ async function fetchDynamicData() {
 function loadLocalStaticData() {
   const local = JSON.parse(localStorage.getItem('life_static'));
   if (local) {
-    appData.categories = local.categories; appData.goals = local.goals; appData.habitsMaster = local.habitsMaster;
+    appData.categories = local.categories; appData.goals = local.goals; appData.habitsMaster = local.habitsMaster; appData.recurring = local.recurring || [];
   } else if (scriptUrl) forceSync();
 }
 
-// --- FORMATTERS ---
 function formatRelativeDate(dateStr) {
   if(!dateStr) return '';
   const today = new Date(); today.setHours(0,0,0,0);
@@ -397,14 +437,13 @@ function calculateStreak(habitId) {
      const dStr = getLocalISODate(d);
      const log = appData.habitsLog.find(l => l.HabitID == habitId && l.Date.startsWith(dStr) && (l.Completed === true || l.Completed === 'TRUE'));
      if (log) { streak++; } 
-     else { if (i === 0) continue; break; } // It's okay if today isn't checked yet
+     else { if (i === 0) continue; break; }
   }
   return streak;
 }
 
-// --- RENDERING ---
 function renderAll() {
-  renderKanban(); renderFocus(); renderHabits(); renderGoals();
+  renderKanban(); renderFocus(); renderHabits(); renderGoals(); renderRecurringSettings();
   populateDropdowns();
 }
 
@@ -420,8 +459,10 @@ function populateDropdowns() {
   document.getElementById('taskCategory').innerHTML = `<option value="">Select Category</option>` + cats;
   document.getElementById('habitCategory').innerHTML = `<option value="">Select Category</option>` + cats;
   document.getElementById('goalCategory').innerHTML = `<option value="">Select Category</option>` + cats;
+  document.getElementById('recurCategory').innerHTML = `<option value="">Select Category</option>` + cats;
 
-  const goals = `<option value="">No Goal Link</option>` + appData.goals.map(g => `<option value="${g.GoalID}">${g.Label}</option>`).join('');
+  const activeGoals = appData.goals.filter(g => g.Status === 'Active');
+  const goals = `<option value="">No Goal Link</option>` + activeGoals.map(g => `<option value="${g.GoalID}">${g.Label}</option>`).join('');
   document.getElementById('taskGoal').innerHTML = goals;
 }
 
@@ -430,7 +471,7 @@ function renderKanban() {
   const cols = ['topick', 'todo', 'inprogress', 'done'];
   cols.forEach(c => { document.getElementById(`col-${c}`).innerHTML = ''; document.getElementById(`count-${c}`).innerText = '0'; });
   
-  appData.tasks.filter(t => t.Status && t.Status !== 'discarded').sort((a,b) => b.Important - a.Important).forEach((task, idx) => {
+  appData.tasks.filter(t => t.Status && t.Status !== 'discarded').sort((a,b) => b.Important - a.Important).forEach((task) => {
     const card = document.createElement('div');
     card.className = `card ${task.Important ? 'important' : ''}`;
     card.draggable = true; card.dataset.id = task.TaskID;
@@ -438,18 +479,15 @@ function renderKanban() {
     card.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:flex-start;">
         <div class="card-title">${task.Title}</div>
-        <div style="background:var(--color-background-secondary); border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:10px;">${task.Important ? '!' : '-'}</div>
       </div>
       <div class="card-meta">
         <span class="cat-pill">${task.Category}</span>
         ${formatRelativeDate(task.DueDate)}
-        <span class="stack-badge">#${idx+1}</span>
       </div>`;
       
     card.ondragstart = () => { dragId = task.TaskID; setTimeout(()=>card.style.opacity='0.5',0); };
     card.ondragend = () => card.style.opacity='1';
     
-    // Task Context Menu
     card.oncontextmenu = (e) => { e.preventDefault(); openMenu(e, 'ctxMenuTask', task.TaskID); };
     card.ontouchstart = (e) => { longPressTimer = setTimeout(() => openMenu(e, 'ctxMenuTask', task.TaskID), 500); };
     card.ontouchend = () => clearTimeout(longPressTimer);
@@ -470,6 +508,11 @@ function openMenu(e, menuId, targetId) {
   if(menuId === 'ctxMenuTask') {
     const task = appData.tasks.find(t => t.TaskID == targetId);
     document.getElementById('ctx-toggle-important').innerText = task.Important ? "Unmark Important" : "Mark Important";
+    
+    ['topick', 'todo', 'inprogress', 'done'].forEach(s => {
+      const el = document.getElementById(`ctx-opt-${s}`);
+      if(el) el.style.display = (task.Status === s) ? 'none' : 'flex';
+    });
   }
 
   let x = e.clientX || (e.touches && e.touches[0].clientX);
@@ -530,8 +573,6 @@ function onDrop(e, status) {
 // --- DAILY FOCUS ---
 function renderFocus() {
   const list = document.getElementById('focus-task-list'); list.innerHTML = '';
-  
-  // Combine In Progress and To Do, sort so In Progress is first
   const focusTasks = appData.tasks.filter(t => t.Status === 'todo' || t.Status === 'inprogress')
                                   .sort((a,b) => (a.Status === 'inprogress' ? -1 : 1));
   
@@ -539,13 +580,15 @@ function renderFocus() {
   
   focusTasks.forEach(t => {
     const isProg = t.Status === 'inprogress';
-    list.innerHTML += `<div class="focus-task" onclick="cycleFocusTask('${t.TaskID}', '${t.Status}')">
+    const impClass = t.Important ? 'important' : '';
+    
+    list.innerHTML += `<div class="focus-task ${impClass}" onclick="cycleFocusTask('${t.TaskID}', '${t.Status}')">
       <div class="f-check ${isProg ? 'inprogress' : ''}"></div>
-      <div>
+      <div style="flex:1">
         <div class="focus-title">${t.Title}</div>
         <div style="display:flex; gap:8px; align-items:center;">
-          <span class="cat-pill" style="font-size:10px">${t.Category}</span>
-          <span style="font-size:10px; color:var(--color-text-tertiary)">${isProg ? 'In Progress' : 'To Do'}</span>
+          <span class="cat-pill">${t.Category}</span>
+          <span class="status-pill ${isProg ? 'status-inprogress' : 'status-todo'}">${isProg ? 'In Progress' : 'To Do'}</span>
         </div>
       </div>
     </div>`;
@@ -574,7 +617,6 @@ function renderHabits() {
     const streak = calculateStreak(h.HabitID);
     const card = document.createElement('div'); card.className = 'habit-card';
     
-    // Long Press Context
     card.oncontextmenu = (e) => { e.preventDefault(); promptDisableHabit(h.HabitID, h.Name); };
     card.ontouchstart = (e) => { longPressTimer = setTimeout(() => promptDisableHabit(h.HabitID, h.Name), 500); };
     card.ontouchend = () => clearTimeout(longPressTimer);
@@ -617,17 +659,25 @@ function toggleHabit(id, date, completed) {
 }
 
 // --- GOALS ---
+function toggleHiddenGoals() {
+  showHiddenGoals = !showHiddenGoals;
+  document.getElementById('btn-toggle-goals').innerText = showHiddenGoals ? "Hide Inactive" : "Show Inactive";
+  renderGoals();
+}
+
 function renderGoals() {
   const side = document.getElementById('goals-sidebar'); side.innerHTML = '';
   const main = document.getElementById('goals-main'); main.innerHTML = '';
   
-  if(!activeGoalId && appData.goals.length > 0) activeGoalId = appData.goals[0].GoalID;
+  const visibleGoals = appData.goals.filter(g => showHiddenGoals || g.Status === 'Active');
+  
+  if(!activeGoalId && visibleGoals.length > 0) activeGoalId = visibleGoals[0].GoalID;
 
-  appData.goals.forEach(g => {
+  visibleGoals.forEach(g => {
     const item = document.createElement('div');
     item.className = `goal-nav-item ${activeGoalId == g.GoalID ? 'active' : ''}`;
     
-    let color = '#1D9E75'; // Active
+    let color = '#1D9E75';
     if(g.Status === 'Inactive') color = '#888780';
     if(g.Status === 'Archive') color = '#495057';
     if(g.Status === 'Completed') color = '#378ADD';
@@ -635,7 +685,6 @@ function renderGoals() {
     item.innerHTML = `<span>${g.Label}</span><div class="dot" style="background:${color}; margin-top:4px;"></div>`;
     item.onclick = () => { activeGoalId = g.GoalID; renderGoals(); };
     
-    // Context Menu for Goal Status
     item.oncontextmenu = (e) => { e.preventDefault(); openMenu(e, 'ctxMenuGoal', g.GoalID); };
     item.ontouchstart = (e) => { longPressTimer = setTimeout(() => openMenu(e, 'ctxMenuGoal', g.GoalID), 500); };
     item.ontouchend = () => clearTimeout(longPressTimer);
@@ -644,7 +693,7 @@ function renderGoals() {
     side.appendChild(item);
   });
 
-  const active = appData.goals.find(g => g.GoalID == activeGoalId);
+  const active = visibleGoals.find(g => g.GoalID == activeGoalId);
   if(active) {
     main.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:15px;">
         <h3>${active.Label} Tasks</h3>
@@ -670,6 +719,30 @@ function openAddTaskForGoal(goalId, category) {
     document.getElementById('taskGoal').value = goalId;
     document.getElementById('taskCategory').value = category;
   }, 50);
+}
+
+// --- RECURRING SETTINGS ---
+function renderRecurringSettings() {
+  const list = document.getElementById('recurList'); list.innerHTML = '';
+  
+  appData.recurring.forEach(r => {
+    let freqText = 'Custom';
+    if(r.FrequencyDays == 7) freqText = 'Weekly';
+    if(r.FrequencyDays == 14) freqText = 'Bi-weekly';
+    if(r.FrequencyDays == 30) freqText = 'Monthly';
+    if(r.FrequencyDays == 365) freqText = 'Yearly';
+
+    const d = new Date(r.NextDueDate);
+    const dateStr = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+
+    list.innerHTML += `<div class="recur-item">
+      <div>
+        <div style="font-weight:500; font-size:14px;">${r.Title}</div>
+        <div style="font-size:11px; color:var(--color-text-tertiary); margin-top:2px;">${freqText} · Next: ${dateStr}</div>
+      </div>
+      <div class="recur-icon">↻</div>
+    </div>`;
+  });
 }
 
 // --- FORMS & MODALS ---
@@ -727,6 +800,21 @@ async function submitNewGoal() {
   renderGoals();
   
   const response = await apiCall('addGoal', goal);
+  if(response.success) { forceSync(); }
+}
+
+async function submitNewRecurring() {
+  const title = document.getElementById('recurTitle').value;
+  const category = document.getElementById('recurCategory').value;
+  const freq = document.getElementById('recurFreq').value;
+  const nextDate = document.getElementById('recurDate').value;
+
+  if(!title || !category || !nextDate) return alert("All fields are required.");
+
+  const recur = { title, category, frequencyDays: freq, nextDueDate: nextDate, important: document.getElementById('recurImportant').checked };
+  closeModals();
+  
+  const response = await apiCall('addRecurring', recur);
   if(response.success) { forceSync(); }
 }
 
