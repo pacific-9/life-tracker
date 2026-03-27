@@ -174,7 +174,7 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
     <div id="focus-task-list"></div>
     <div class="brain-dump">
       <h3 style="font-size:13px; margin-bottom:10px; color:var(--color-text-secondary); text-transform:uppercase;">Brain Dump</h3>
-      <input class="brain-input" placeholder="Quick capture — type and press enter..." id="brainInput" onkeypress="handleBrainAdd(event)"/>
+      <input class="brain-input" placeholder="Quick capture — type and press enter..." id="brainInput" onkeydown="handleBrainAdd(event)"/>
       <div id="brain-list"></div>
     </div>
   </div>
@@ -297,9 +297,6 @@ body{font-family:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-ser
        </select>
        <input type="number" id="recurYearDay" min="1" max="31" class="input-base" placeholder="Date (1-31)">
     </div>
-
-    <label style="font-size:11px; color:var(--color-text-tertiary);">Next Due Date</label>
-    <input type="date" id="recurDate" class="input-base">
 
     <div style="display:flex; align-items:center; gap:8px; margin-bottom:20px;">
       <input type="checkbox" id="recurImportant"> <label>Mark as Important</label>
@@ -896,7 +893,6 @@ function openEditRecurModal(templateId = null) {
     document.getElementById('recurTitle').value = r.Title;
     document.getElementById('recurCategory').value = r.Category;
     document.getElementById('recurType').value = r.RecurrenceType;
-    document.getElementById('recurDate').value = r.NextDueDate ? String(r.NextDueDate).split('T')[0] : '';
     document.getElementById('recurImportant').checked = r.Important === true || r.Important === 'TRUE';
     
     toggleRecurUI();
@@ -915,7 +911,6 @@ function openEditRecurModal(templateId = null) {
     document.getElementById('recurModalTitle').innerText = "Add Recurring Task";
     document.getElementById('recurTitle').value = '';
     document.getElementById('recurType').value = 'Weekly';
-    document.getElementById('recurDate').value = '';
     document.querySelectorAll('.r-day').forEach(cb => cb.checked = false);
     toggleRecurUI();
   }
@@ -944,15 +939,15 @@ async function submitRecurring() {
 
   if(!title || !category) return alert("Title and Category are required.");
 
-  const recurData = { title, category, recurType: type, recurDetails: details, important: document.getElementById('recurImportant').checked, nextDueDate: document.getElementById('recurDate').value };
+  const recurData = { title, category, recurType: type, recurDetails: details, important: document.getElementById('recurImportant').checked };
   closeModals();
   
   if (editingRecurId) {
     const r = appData.recurring.find(x => x.TemplateID == editingRecurId);
-    Object.assign(r, {Title: title, Category: category, RecurrenceType: type, RecurrenceDetails: details, Important: recurData.important, NextDueDate: recurData.nextDueDate});
+    Object.assign(r, {Title: title, Category: category, RecurrenceType: type, RecurrenceDetails: details, Important: recurData.important});
     localStorage.setItem('life_static', JSON.stringify({ categories: appData.categories, goals: appData.goals, habitsMaster: appData.habitsMaster, recurring: appData.recurring }));
     renderAll();
-    apiCall('updateRecurring', { templateId: editingRecurId, ...recurData });
+    apiCall('updateRecurring', { templateId: editingRecurId, ...recurData, nextDueDate: r.NextDueDate });
   } else {
     const response = await apiCall('addRecurring', recurData);
     if(response.success) forceSync();
@@ -960,12 +955,49 @@ async function submitRecurring() {
   editingRecurId = null;
 }
 
+async function submitNewHabit() {
+  const name = document.getElementById('habitName').value;
+  const category = document.getElementById('habitCategory').value;
+  if(!name || !category) return alert("Name and Category required.");
+  
+  const habit = { name, icon: document.getElementById('habitIcon').value, category };
+  closeModals();
+  appData.habitsMaster.push({ HabitID: 'temp_'+Date.now(), Name: habit.name, Icon: habit.icon, Category: habit.category, Active: true, Frequency: 'Daily' });
+  renderHabits();
+  
+  const response = await apiCall('addHabit', habit); 
+  if(response.success) { forceSync(); }
+}
+
+async function submitNewGoal() {
+  const label = document.getElementById('goalLabel').value;
+  const category = document.getElementById('goalCategory').value;
+  if(!label || !category) return alert("Name and Category required.");
+  
+  const goal = { label, category };
+  closeModals();
+  
+  const newGoalId = 'temp_'+Date.now();
+  appData.goals.push({ GoalID: newGoalId, Label: goal.label, Category: goal.category, Status: 'Active' });
+  
+  activeGoalId = newGoalId;
+  renderGoals();
+  
+  const response = await apiCall('addGoal', goal);
+  if(response.success) { forceSync(); }
+}
+
 // --- BRAIN DUMP ---
 function handleBrainAdd(e) {
-  if(e.key === 'Enter' && e.target.value.trim()){
-    brainDump.push({id: Date.now(), text: e.target.value.trim()});
-    localStorage.setItem('life_brain_dump', JSON.stringify(brainDump));
-    e.target.value = ''; renderBrainDump();
+  if(e.key === 'Enter') {
+    e.preventDefault(); 
+    const val = e.target.value.trim();
+    if(val) {
+      brainDump.push({id: Date.now(), text: val});
+      localStorage.setItem('life_brain_dump', JSON.stringify(brainDump));
+      e.target.value = ''; 
+      renderBrainDump();
+    }
   }
 }
 function renderBrainDump() {
