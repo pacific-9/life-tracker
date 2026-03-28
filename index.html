@@ -62,7 +62,15 @@
   
   .card-title { font-size: 14px; font-weight: 500; margin-bottom: 10px; line-height: 1.4; color: var(--text-primary); }
   .card-meta { display: flex; gap: 8px; font-size: 11px; align-items: center; flex-wrap: wrap; }
-  .cat-pill { padding: 4px 10px; border-radius: 8px; background: rgba(255,255,255,0.05); color: var(--text-secondary); font-weight: 500; }
+  
+  /* Restored Colorful Pills */
+  .cat-pill { padding: 4px 10px; border-radius: 8px; font-weight: 600; font-size: 11px; }
+  .pill-health { background: rgba(29, 158, 117, 0.15); color: #1D9E75; }
+  .pill-job { background: rgba(55, 138, 221, 0.15); color: #378ADD; }
+  .pill-business { background: rgba(93, 95, 239, 0.15); color: #5D5FEF; }
+  .pill-growth { background: rgba(239, 159, 39, 0.15); color: #FBBF24; }
+  .pill-daily { background: rgba(161, 161, 170, 0.15); color: #A1A1AA; }
+
   .due-text { color: #A1A1AA; }
   .col-drop-zone { min-height: 50px; }
 
@@ -74,11 +82,6 @@
   .f-check { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--border-light); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: transparent; transition: all 0.2s; }
   .f-check.inprogress { border-color: #FBBF24; border-width: 3px; }
   .focus-title { font-size: 15px; font-weight: 500; color: var(--text-primary); margin-bottom: 6px; }
-  
-  .brain-dump { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--border-radius-lg); padding: 16px; margin-top: 30px; }
-  .brain-input { width: 100%; background: var(--bg-app); border: 1px solid var(--border-light); color: var(--text-primary); padding: 12px; border-radius: var(--border-radius-md); margin-bottom: 12px; outline: none; font-size: 14px; }
-  .brain-input:focus { border-color: var(--accent); }
-  .brain-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border-light); font-size: 13px; color: var(--text-secondary); }
 
   /* --- TIMETABLE --- */
   .tt-container { max-width: 600px; margin: 0 auto; }
@@ -175,10 +178,11 @@
   .ctx-sep { height: 1px; background: var(--border-light); margin: 6px 0; }
   .dot { width: 8px; height: 8px; border-radius: 50%; }
 
-  /* --- MOBILE RESPONSIVENESS --- */
+  /* --- MOBILE RESPONSIVENESS FIXES --- */
   @media (max-width: 768px) {
-    .board { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 20px; scroll-behavior: smooth; }
-    .col { min-width: 85vw; scroll-snap-align: center; }
+    /* Smooth momentum scrolling and 2 columns visible (45vw min-width) */
+    .board { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 20px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; gap: 12px;}
+    .col { min-width: 45vw; scroll-snap-align: start; }
     .goals-layout { grid-template-columns: 1fr; }
   }
 </style>
@@ -222,11 +226,6 @@
 
   <div id="focus" class="view">
     <div id="focus-task-list"></div>
-    <div class="brain-dump">
-      <div class="section-label" style="margin-top:0;">Brain Dump</div>
-      <input class="brain-input" placeholder="Quick capture — type and press enter..." id="brainInput" onkeydown="handleBrainAdd(event)"/>
-      <div id="brain-list"></div>
-    </div>
   </div>
 
   <div id="timetable" class="view">
@@ -441,7 +440,6 @@
 let scriptUrl = localStorage.getItem('life_script_url') || "";
 let appData = { tasks: [], habitsLog: [], habitsMaster: [], goals: [], categories: [], recurring: [], timetables: [] };
 let optimizedHabitLogs = {}; 
-let brainDump = JSON.parse(localStorage.getItem('life_brain_dump')) || [];
 
 let dragId = null, currentCtxId = null, longPressTimer = null;
 let activeGoalId = null, showHiddenGoals = false, activeTTType = 'Weekday';
@@ -465,7 +463,6 @@ function getCategoryColorClass(catName) {
 
 window.onload = async () => {
   document.getElementById('scriptUrlInput').value = scriptUrl;
-  renderBrainDump();
   
   if (!scriptUrl) {
     document.getElementById('settingsPanel').classList.add('open');
@@ -608,11 +605,14 @@ function renderKanban() {
     const card = document.createElement('div');
     card.className = `card ${task.Important ? 'important' : ''}`;
     card.draggable = true; card.dataset.id = task.TaskID;
+    
+    const catClass = getCategoryColorClass(task.Category);
+    
     card.innerHTML = `
       <div style="display:flex; justify-content:space-between; align-items:flex-start;">
         <div class="card-title">${task.Title}</div>
       </div>
-      <div class="card-meta"><span class="cat-pill">${task.Category}</span>${formatRelativeDate(task.DueDate)}</div>`;
+      <div class="card-meta"><span class="cat-pill pill-${catClass}">${task.Category}</span>${formatRelativeDate(task.DueDate)}</div>`;
       
     card.ondragstart = () => { dragId = task.TaskID; setTimeout(()=>card.style.opacity='0.5',0); };
     card.ondragend = () => card.style.opacity='1';
@@ -643,13 +643,14 @@ function renderFocus() {
   focusTasks.forEach(t => {
     const isProg = t.Status === 'inprogress';
     const impClass = t.Important ? 'important' : '';
+    const catClass = getCategoryColorClass(t.Category);
     
     list.innerHTML += `<div class="focus-task ${impClass}" onclick="cycleFocusTask('${t.TaskID}', '${t.Status}')">
       <div class="f-check ${isProg ? 'inprogress' : ''}"></div>
       <div style="flex:1">
         <div class="focus-title">${t.Title}</div>
         <div style="display:flex; gap:8px; align-items:center;">
-          <span class="cat-pill">${t.Category}</span>
+          <span class="cat-pill pill-${catClass}">${t.Category}</span>
         </div>
       </div>
     </div>`;
@@ -836,10 +837,15 @@ function renderGoals() {
     if(tasks.length === 0) main.innerHTML += `<p style="font-size:13px; color:var(--text-secondary)">No tasks linked to this goal yet.</p>`;
     
     tasks.forEach(t => {
+      const isDone = t.Status === 'done';
+      const textStyle = isDone ? 'color:#1D9E75;' : '';
+      const checkStyle = isDone ? 'border-color:#1D9E75; background:#1D9E75; color:#fff;' : 'border-color:var(--text-secondary);';
+      const checkMark = isDone ? '✓' : '';
+      
       main.innerHTML += `<div class="task-row" onclick="openEditTaskModal('${t.TaskID}')">
-        <div class="f-check ${t.Status === 'done' ? 'done' : ''}" style="width:18px; height:18px; border-color:var(--text-secondary);"></div>
-        <span style="font-size:14px; ${t.Status === 'done' ? 'text-decoration:line-through; opacity:0.5' : ''}">${t.Title}</span>
-        <span class="cat-pill" style="margin-left:auto; font-size:10px">${t.Status}</span>
+        <div class="f-check" style="width:18px; height:18px; ${checkStyle}">${checkMark}</div>
+        <span style="font-size:14px; ${textStyle}">${t.Title}</span>
+        <span class="cat-pill pill-${getCategoryColorClass(t.Category)}" style="margin-left:auto; font-size:10px">${t.Status}</span>
       </div>`;
     });
     main.innerHTML += `<div style="margin-top:20px; color:var(--accent); font-weight:600; font-size:13px; cursor:pointer;" onclick="openEditTaskModal(null, '${active.GoalID}', '${active.Category}')">+ Add task to this goal</div>`;
@@ -1126,27 +1132,6 @@ async function submitNewGoal() {
   if(response.success) { forceSync(); }
 }
 
-// --- BRAIN DUMP ---
-function handleBrainAdd(e) {
-  if(e.key === 'Enter') {
-    e.preventDefault(); 
-    const val = e.target.value.trim();
-    if(val) {
-      brainDump.push({id: Date.now(), text: val});
-      localStorage.setItem('life_brain_dump', JSON.stringify(brainDump));
-      e.target.value = ''; 
-      renderBrainDump();
-    }
-  }
-}
-function renderBrainDump() {
-  const list = document.getElementById('brain-list'); list.innerHTML = '';
-  brainDump.forEach(b => list.innerHTML += `<div class="brain-item"><span>${b.text}</span><span style="cursor:pointer; color:#F87171; padding:0 8px;" onclick="removeBrain(${b.id})">✕</span></div>`);
-}
-function removeBrain(id) {
-  brainDump = brainDump.filter(x => x.id !== id);
-  localStorage.setItem('life_brain_dump', JSON.stringify(brainDump)); renderBrainDump();
-}
 </script>
 </body>
 </html>
