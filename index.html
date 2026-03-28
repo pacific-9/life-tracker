@@ -89,13 +89,17 @@
   .toggle-btn { padding: 8px 24px; font-size: 13px; font-weight: 600; color: var(--text-secondary); border-radius: 8px; cursor: pointer; transition: all 0.2s ease; }
   .toggle-btn.active { background: var(--bg-surface-hover); color: var(--text-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.2); }
   
-  .timeline { position: relative; padding-left: 60px; margin-top: 20px; margin-bottom: 40px; }
+  .timeline { position: relative; padding-left: 60px; margin-top: 20px; margin-bottom: 20px; }
   .timeline::before { content: ''; position: absolute; left: 66px; top: 10px; bottom: 0; width: 1px; background: var(--border-light); z-index: 0; }
   .time-block { position: relative; display: flex; margin-bottom: 8px; z-index: 1; }
   .time-label { position: absolute; left: -60px; top: 0; font-size: 12px; color: var(--text-secondary); width: 45px; text-align: right; font-weight: 600; letter-spacing: 0.5px; }
   .timeline-dot { position: absolute; left: 2.5px; top: 0; width: 9px; height: 9px; border-radius: 50%; border: 2px solid var(--bg-app); box-shadow: 0 0 0 1px var(--border-light); z-index: 2; transition: transform 0.2s; }
-  .tt-card { margin-left: 20px; width: 100%; background-color: var(--bg-surface); border: 1px solid var(--border-light); border-left-width: 4px; border-radius: 12px; padding: 12px 14px; display: flex; align-items: flex-start; }
+  
+  .tt-card { margin-left: 20px; width: 100%; background-color: var(--bg-surface); border: 1px solid var(--border-light); border-left-width: 4px; border-radius: 12px; padding: 0 14px; display: flex; align-items: center; overflow: hidden;}
   .tt-title { font-size: 14px; font-weight: 500; color: var(--text-primary); }
+
+  /* Mute Daily Tasks contrast */
+  .bg-daily .tt-title { color: #52525B; }
 
   /* Category Colors for Timetable */
   .c-health { background: #1D9E75; } .bg-health { border-left-color: #1D9E75 !important; background: linear-gradient(90deg, rgba(29, 158, 117, 0.08) 0%, rgba(24, 24, 27, 0) 100%); }
@@ -103,6 +107,16 @@
   .c-business { background: #5D5FEF; } .bg-business { border-left-color: #5D5FEF !important; background: linear-gradient(90deg, rgba(93, 95, 239, 0.08) 0%, rgba(24, 24, 27, 0) 100%); }
   .c-growth { background: #FBBF24; } .bg-growth { border-left-color: #FBBF24 !important; background: linear-gradient(90deg, rgba(251, 191, 36, 0.08) 0%, rgba(24, 24, 27, 0) 100%); }
   .c-daily { background: #A1A1AA; } .bg-daily { border-left-color: #A1A1AA !important; background: linear-gradient(90deg, rgba(161, 161, 170, 0.08) 0%, rgba(24, 24, 27, 0) 100%); }
+
+  /* Timetable Stats CSS */
+  .stats-container { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--border-radius-lg); padding: 20px; margin-top: 30px; }
+  .stats-header { font-size: 14px; font-weight: 600; margin-bottom: 15px; display: flex; justify-content: space-between; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+  .stat-row { display: flex; align-items: center; margin-bottom: 12px; gap: 15px; }
+  .stat-label { width: 85px; font-size: 13px; display: flex; align-items: center; gap: 8px; text-transform: capitalize; color: var(--text-primary); }
+  .stat-bar-bg { flex: 1; height: 6px; background: var(--bg-app); border-radius: 10px; overflow: hidden; border: 1px solid var(--border-light); }
+  .stat-bar-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease-out; }
+  .stat-values { width: 85px; text-align: right; font-size: 12px; color: var(--text-secondary); }
+  .stat-percent { font-weight: 600; color: var(--text-primary); margin-right: 4px; display: inline-block; width: 35px;}
 
   /* --- HABITS & GOALS --- */
   .habit-card { background: var(--bg-surface); border: 1px solid var(--border-light); border-radius: var(--border-radius-lg); padding: 16px; margin-bottom: 16px; user-select: none; }
@@ -237,6 +251,7 @@
         </div>
       </div>
       <div class="timeline" id="timeline-container"></div>
+      <div class="stats-container" id="stats-container"></div>
     </div>
   </div>
 
@@ -445,10 +460,16 @@ let dragId = null, currentCtxId = null, longPressTimer = null;
 let activeGoalId = null, showHiddenGoals = false, activeTTType = 'Weekday';
 let editingTaskId = null, editingRecurId = null;
 let currentTab = 'kanban';
+let activeGoalFilter = 'active'; // Filter state for Goals Tab
 
 function getLocalISODate(d = new Date()) {
   const offset = d.getTimezoneOffset() * 60000;
   return new Date(d.getTime() - offset).toISOString().split('T')[0];
+}
+
+function formatShortDate(dStr) {
+  if (!dStr) return '';
+  return new Date(dStr).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
 
 function getCategoryColorClass(catName) {
@@ -601,7 +622,16 @@ function renderKanban() {
   const cols = ['topick', 'todo', 'inprogress', 'done'];
   cols.forEach(c => { document.getElementById(`col-${c}`).innerHTML = ''; document.getElementById(`count-${c}`).innerText = '0'; });
   
-  appData.tasks.filter(t => t.Status && t.Status !== 'discarded').sort((a,b) => b.Important - a.Important).forEach((task) => {
+  appData.tasks.filter(t => t.Status && t.Status !== 'discarded').sort((a,b) => {
+    // 1. Important first
+    const impA = (a.Important === true || a.Important === 'TRUE' || a.Important === 'true') ? 1 : 0;
+    const impB = (b.Important === true || b.Important === 'TRUE' || b.Important === 'true') ? 1 : 0;
+    if (impA !== impB) return impB - impA;
+    // 2. Due Date Ascending
+    const dateA = a.DueDate ? new Date(a.DueDate).getTime() : Infinity;
+    const dateB = b.DueDate ? new Date(b.DueDate).getTime() : Infinity;
+    return dateA - dateB;
+  }).forEach((task) => {
     const card = document.createElement('div');
     card.className = `card ${task.Important ? 'important' : ''}`;
     card.draggable = true; card.dataset.id = task.TaskID;
@@ -674,6 +704,7 @@ function renderTimetableUI(type) {
   document.getElementById('btn-tt-weekend').classList.toggle('active', type === 'Weekend');
 
   const container = document.getElementById('timeline-container');
+  const statsContainer = document.getElementById('stats-container');
   container.innerHTML = '';
   
   container.classList.remove('fade-in');
@@ -684,8 +715,12 @@ function renderTimetableUI(type) {
   
   if (data.length === 0) {
     container.innerHTML = `<p style="color:var(--text-secondary); text-align:center; padding: 20px;">No schedule found. Update your Google Sheet.</p>`;
+    if(statsContainer) statsContainer.innerHTML = '';
     return;
   }
+
+  let totalHours = 0;
+  const catTotals = { job: 0, business: 0, health: 0, growth: 0, daily: 0 };
 
   data.forEach(item => {
     const dur = parseFloat(item.DurationHours) || 1;
@@ -693,6 +728,13 @@ function renderTimetableUI(type) {
     if (visualHeight > 250) visualHeight = 250; 
     
     const catClass = getCategoryColorClass(item.Category);
+    
+    totalHours += dur;
+    if(catTotals[catClass] !== undefined) {
+      catTotals[catClass] += dur;
+    } else {
+      catTotals[catClass] = dur;
+    }
 
     const block = document.createElement('div');
     block.className = 'time-block';
@@ -707,6 +749,31 @@ function renderTimetableUI(type) {
     `;
     container.appendChild(block);
   });
+
+  // Render Stats Section
+  if (statsContainer) {
+    const sortedCats = Object.keys(catTotals).sort((a, b) => catTotals[b] - catTotals[a]);
+    let html = `<div class="stats-header"><span>Time Allocation</span><span>${totalHours.toFixed(1)} Total Hours</span></div>`;
+
+    sortedCats.forEach(cat => {
+      if (catTotals[cat] > 0) {
+        const percent = Math.round((catTotals[cat] / totalHours) * 100);
+        html += `
+          <div class="stat-row">
+            <div class="stat-label">
+              <div class="timeline-dot c-${cat}" style="position:relative; left:0; border:none; box-shadow:none; width:10px; height:10px;"></div> 
+              ${cat}
+            </div>
+            <div class="stat-bar-bg">
+              <div class="stat-bar-fill c-${cat}" style="width: ${percent}%;"></div>
+            </div>
+            <div class="stat-values"><span class="stat-percent">${percent}%</span> (${catTotals[cat]}h)</div>
+          </div>
+        `;
+      }
+    });
+    statsContainer.innerHTML = html;
+  }
 }
 
 // --- HABITS ---
@@ -832,9 +899,37 @@ function renderGoals() {
 
   const active = visibleGoals.find(g => g.GoalID == activeGoalId);
   if(active) {
-    main.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px;"><h3 style="font-weight:600;">${active.Label} Tasks</h3><span style="font-size:11px; color:var(--text-secondary)">Status: ${active.Status}</span></div>`;
-    const tasks = appData.tasks.filter(t => t.GoalID == active.GoalID && t.Status !== 'discarded');
-    if(tasks.length === 0) main.innerHTML += `<p style="font-size:13px; color:var(--text-secondary)">No tasks linked to this goal yet.</p>`;
+    // Top bar with dropdown filter
+    main.innerHTML = `<div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:20px;">
+      <div>
+        <h3 style="font-weight:600;">${active.Label} Tasks</h3>
+        <span style="font-size:11px; color:var(--text-secondary)">Status: ${active.Status}</span>
+      </div>
+      <select class="input-base" style="width:auto; padding:6px 10px; margin:0; font-size:12px;" onchange="activeGoalFilter = this.value; renderGoals();">
+        <option value="active" ${activeGoalFilter === 'active' ? 'selected' : ''}>To Do & In Progress</option>
+        <option value="topick" ${activeGoalFilter === 'topick' ? 'selected' : ''}>To Pick</option>
+        <option value="done" ${activeGoalFilter === 'done' ? 'selected' : ''}>Completed</option>
+        <option value="discarded" ${activeGoalFilter === 'discarded' ? 'selected' : ''}>Discarded</option>
+        <option value="all" ${activeGoalFilter === 'all' ? 'selected' : ''}>All Tasks</option>
+      </select>
+    </div>`;
+
+    // Filter Logic
+    let tasks = appData.tasks.filter(t => t.GoalID == active.GoalID);
+    if (activeGoalFilter === 'active') {
+      tasks = tasks.filter(t => t.Status === 'todo' || t.Status === 'inprogress');
+    } else if (activeGoalFilter !== 'all') {
+      tasks = tasks.filter(t => t.Status === activeGoalFilter);
+    }
+    
+    // Sort ascending by Due Date
+    tasks.sort((a,b) => {
+      const dateA = a.DueDate ? new Date(a.DueDate).getTime() : Infinity;
+      const dateB = b.DueDate ? new Date(b.DueDate).getTime() : Infinity;
+      return dateA - dateB;
+    });
+
+    if(tasks.length === 0) main.innerHTML += `<p style="font-size:13px; color:var(--text-secondary)">No tasks match this filter.</p>`;
     
     tasks.forEach(t => {
       const isDone = t.Status === 'done';
@@ -842,9 +937,17 @@ function renderGoals() {
       const checkStyle = isDone ? 'border-color:#1D9E75; background:#1D9E75; color:#fff;' : 'border-color:var(--text-secondary);';
       const checkMark = isDone ? '✓' : '';
       
-      main.innerHTML += `<div class="task-row" onclick="openEditTaskModal('${t.TaskID}')">
-        <div class="f-check" style="width:18px; height:18px; ${checkStyle}">${checkMark}</div>
-        <span style="font-size:14px; ${textStyle}">${t.Title}</span>
+      let datesText = [];
+      if(t.StartDate) datesText.push(`Start: ${formatShortDate(t.StartDate)}`);
+      if(t.DueDate) datesText.push(`Due: ${formatShortDate(t.DueDate)}`);
+      if((isDone || t.Status === 'discarded') && t.CompletedDate) datesText.push(`Completed: ${formatShortDate(t.CompletedDate)}`);
+      
+      main.innerHTML += `<div class="task-row" onclick="openEditTaskModal('${t.TaskID}')" style="align-items:flex-start;">
+        <div class="f-check" style="width:18px; height:18px; margin-top:2px; ${checkStyle}">${checkMark}</div>
+        <div style="flex:1;">
+          <div style="font-size:14px; ${textStyle}">${t.Title}</div>
+          <div style="font-size:11px; color:var(--text-secondary); margin-top:4px;">${datesText.join(' &nbsp;•&nbsp; ')}</div>
+        </div>
         <span class="cat-pill pill-${getCategoryColorClass(t.Category)}" style="margin-left:auto; font-size:10px">${t.Status}</span>
       </div>`;
     });
@@ -985,7 +1088,7 @@ function openEditTaskModal(taskId = null, presetGoal = '', presetCat = '') {
     document.getElementById('taskCategory').value = t.Category;
     document.getElementById('taskGoal').value = t.GoalID || '';
     document.getElementById('taskDue').value = t.DueDate ? String(t.DueDate).split('T')[0] : '';
-    document.getElementById('taskImportant').checked = t.Important === true || t.Important === 'TRUE';
+    document.getElementById('taskImportant').checked = t.Important === true || t.Important === 'TRUE' || t.Important === 'true';
   } else {
     document.getElementById('taskModalTitle').innerText = "Add New Task";
     document.getElementById('taskTitle').value = '';
@@ -1131,7 +1234,6 @@ async function submitNewGoal() {
   const response = await apiCall('addGoal', goal);
   if(response.success) { forceSync(); }
 }
-
 </script>
 </body>
 </html>
